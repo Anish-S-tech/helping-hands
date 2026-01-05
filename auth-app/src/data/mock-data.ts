@@ -1,0 +1,735 @@
+export interface Profile {
+    id: string;
+    full_name: string;
+    role_type: 'builder' | 'founder';
+    specialization?: string;
+    experience_years?: number;
+    completion_score: number;
+    avatar_url: string;
+    github_url?: string;
+    linkedin_url?: string;
+    is_verified: boolean;
+    location?: string;
+    bio?: string;
+}
+
+export interface Project {
+    id: string;
+    title: string;
+    description: string;
+    vision: string;
+    sector: string;
+    skills_needed: string[];
+    team_size_needed: number;
+    member_count: number;
+    status: 'open' | 'closed' | 'in-progress';
+    commitment: 'low' | 'medium' | 'high';
+    created_at: string;
+    last_activity: string;
+    open_roles: string[];
+    applications_pending: number;
+    founder: {
+        id: string;
+        name: string;
+    };
+}
+
+export interface Application {
+    id: string;
+    project_id: string;
+    project_title: string;
+    applicant_id: string;
+    applicant_name: string;
+    applicant_avatar?: string;
+    role_applied: string;
+    status: 'pending' | 'accepted' | 'rejected';
+    applied_at: string;
+    action_required?: boolean;
+}
+
+export interface TeamMember {
+    id: string;
+    user_id: string;
+    name: string;
+    avatar_url?: string;
+    role: string;
+    role_badge: 'founder' | 'lead' | 'developer' | 'designer' | 'analyst';
+    joined_at: string;
+    project_id: string;
+    status: 'active' | 'inactive';
+}
+
+export interface Message {
+    id: string;
+    room_id: string;
+    sender_id: string;
+    sender_name: string;
+    sender_role: 'founder' | 'user';
+    sender_role_title: string;
+    content: string;
+    created_at: string;
+    is_read: boolean;
+}
+
+export interface ChatRoom {
+    id: string;
+    name: string;
+    type: 'project' | 'direct';
+    project_id?: string;
+    project_name?: string;
+    last_message?: string;
+    last_message_time?: string;
+    unread_count: number;
+    updated_at: string;
+    is_archived?: boolean;
+    members_count?: number;
+}
+
+export const MOCK_BUILDERS: Profile[] = [
+    {
+        id: 'b1',
+        full_name: 'Alex Rivers',
+        role_type: 'builder',
+        specialization: 'Frontend Lead',
+        experience_years: 5,
+        completion_score: 100,
+        avatar_url: 'https://i.pravatar.cc/150?u=b1',
+        github_url: 'github.com/arivers',
+        linkedin_url: 'linkedin.com/in/arivers',
+        is_verified: true,
+        location: 'Berlin, DE',
+        bio: 'Passionate about building highly performant React applications with focus on accessibility and user experience.'
+    },
+    {
+        id: 'b2',
+        full_name: 'Sarah Chen',
+        role_type: 'builder',
+        specialization: 'UI/UX Architect',
+        experience_years: 3,
+        completion_score: 85,
+        avatar_url: 'https://i.pravatar.cc/150?u=b2',
+        github_url: 'github.com/schen_design',
+        linkedin_url: 'linkedin.com/in/sarahchen',
+        is_verified: true,
+        location: 'Toronto, CA',
+        bio: 'Creating elegant solutions for complex problems. Specializing in design systems and micro-interactions.'
+    },
+    {
+        id: 'b3',
+        full_name: 'Marcus Thorne',
+        role_type: 'builder',
+        specialization: 'Backend Engineer',
+        experience_years: 7,
+        completion_score: 92,
+        avatar_url: 'https://i.pravatar.cc/150?u=b3',
+        github_url: 'github.com/mthorne_dev',
+        is_verified: true,
+        location: 'London, UK',
+        bio: 'Rust and Go enthusiast. Scaling distributed systems and optimizing database performance.'
+    },
+    {
+        id: 'b4',
+        full_name: 'Elena Rodriguez',
+        role_type: 'builder',
+        specialization: 'Data Analyst',
+        experience_years: 2,
+        completion_score: 70,
+        avatar_url: 'https://i.pravatar.cc/150?u=b4',
+        linkedin_url: 'linkedin.com/in/erodriguez',
+        is_verified: false,
+        location: 'Madrid, ES',
+        bio: 'Bridging the gap between raw data and actionable business insights using Python and SQL.'
+    },
+    {
+        id: 'b5',
+        full_name: 'Jason Kim',
+        role_type: 'builder',
+        specialization: 'Full Stack Dev',
+        experience_years: 4,
+        completion_score: 80,
+        avatar_url: 'https://i.pravatar.cc/150?u=b5',
+        github_url: 'github.com/jkimbuilds',
+        is_verified: true,
+        location: 'Seoul, KR',
+        bio: 'Everything from CSS trickery to server-side logic. I love the Next.js ecosystem.'
+    },
+    {
+        id: 'b6',
+        full_name: 'Priya Sharma',
+        role_type: 'builder',
+        specialization: 'Mobile Developer',
+        experience_years: 6,
+        completion_score: 100,
+        avatar_url: 'https://i.pravatar.cc/150?u=b6',
+        github_url: 'github.com/psharma_mobile',
+        linkedin_url: 'linkedin.com/in/priyasharma',
+        is_verified: true,
+        location: 'Bangalore, IN',
+        bio: 'React Native expert. Shipping high-quality mobile experiences for global brands.'
+    }
+];
+
+export const MOCK_FOUNDERS: Profile[] = [
+    {
+        id: 'f1',
+        full_name: 'David Hoffman',
+        role_type: 'founder',
+        completion_score: 100,
+        avatar_url: 'https://i.pravatar.cc/150?u=f1',
+        is_verified: true,
+        location: 'San Francisco, US',
+        bio: 'Serial entrepreneur focusing on AI-driven productivity tools. Previously at YC S19.'
+    },
+    {
+        id: 'f2',
+        full_name: 'Linda Gao',
+        role_type: 'founder',
+        completion_score: 95,
+        avatar_url: 'https://i.pravatar.cc/150?u=f2',
+        is_verified: true,
+        location: 'Singapore, SG',
+        bio: 'Building the next generation of circular economy logistics. Passionate about sustainability.'
+    },
+    {
+        id: 'f3',
+        full_name: 'Samir Al-Fayed',
+        role_type: 'founder',
+        completion_score: 80,
+        avatar_url: 'https://i.pravatar.cc/150?u=f3',
+        is_verified: false,
+        location: 'Dubai, UAE',
+        bio: 'Disrupting the real estate market with blockchain-based fractional ownership.'
+    }
+];
+
+export const MOCK_PROJECTS: Project[] = [
+    {
+        id: 'p1',
+        title: 'Nexus AI Resume Optimizer',
+        description: 'Advanced NLP engine that helps job seekers match their profiles with enterprise requirements.',
+        vision: 'To eliminate hiring bias and empower talent through transparent AI analysis.',
+        sector: 'AI & Machine Learning',
+        skills_needed: ['Next.js', 'Python', 'Tailwind CSS', 'OpenAI API'],
+        team_size_needed: 4,
+        member_count: 2,
+        status: 'open',
+        commitment: 'high',
+        created_at: '2025-12-15T09:00:00Z',
+        last_activity: '2026-01-05T08:30:00Z',
+        open_roles: ['Backend Engineer', 'ML Engineer'],
+        applications_pending: 3,
+        founder: { id: 'f1', name: 'David Hoffman' }
+    },
+    {
+        id: 'p2',
+        title: 'HealTrack V2',
+        description: 'Comprehensive healthcare appointment and patient management system for clinics.',
+        vision: 'Modernizing patient care through intuitive digital workflows and data security.',
+        sector: 'HealthTech',
+        skills_needed: ['React Native', 'PostgreSQL', 'Node.js', 'HIPAA Compliance'],
+        team_size_needed: 5,
+        member_count: 5,
+        status: 'in-progress',
+        commitment: 'high',
+        created_at: '2025-11-20T14:30:00Z',
+        last_activity: '2026-01-04T16:45:00Z',
+        open_roles: [],
+        applications_pending: 0,
+        founder: { id: 'f2', name: 'Linda Gao' }
+    },
+    {
+        id: 'p3',
+        title: 'EcoLogistics Hub',
+        description: 'Tracking and optimization platform for sustainable supply chain movements.',
+        vision: 'Reducing the carbon footprint of global logistics through smart routing.',
+        sector: 'SaaS & Enterprise',
+        skills_needed: ['TypeScript', 'Google Maps API', 'D3.js', 'Firebase'],
+        team_size_needed: 3,
+        member_count: 1,
+        status: 'open',
+        commitment: 'medium',
+        created_at: '2025-12-28T11:00:00Z',
+        last_activity: '2026-01-03T14:20:00Z',
+        open_roles: ['Frontend Developer', 'DevOps Engineer'],
+        applications_pending: 2,
+        founder: { id: 'f2', name: 'Linda Gao' }
+    },
+    {
+        id: 'p4',
+        title: 'BitProperty Exchange',
+        description: 'Decentralized platform for tokenizing high-value real estate assets.',
+        vision: 'Democratizing real estate investment for everyone, everywhere.',
+        sector: 'Web3 & Crypto',
+        skills_needed: ['Solidity', 'Web3.js', 'Ethers.js', 'Framer Motion'],
+        team_size_needed: 6,
+        member_count: 3,
+        status: 'open',
+        commitment: 'high',
+        created_at: '2026-01-02T16:45:00Z',
+        last_activity: '2026-01-05T07:15:00Z',
+        open_roles: ['Smart Contract Auditor', 'Frontend Lead', 'UX Designer'],
+        applications_pending: 5,
+        founder: { id: 'f3', name: 'Samir Al-Fayed' }
+    },
+    {
+        id: 'p5',
+        title: 'LearnLoop Community',
+        description: 'Open-source platform for peer-to-peer technical mentorship and skill swapping.',
+        vision: 'Building a world where learning is free, accessible, and community-driven.',
+        sector: 'EdTech',
+        skills_needed: ['React', 'Supabase', 'Express', 'Redis'],
+        team_size_needed: 4,
+        member_count: 4,
+        status: 'closed',
+        commitment: 'medium',
+        created_at: '2025-10-05T08:15:00Z',
+        last_activity: '2025-12-20T10:00:00Z',
+        open_roles: [],
+        applications_pending: 0,
+        founder: { id: 'f1', name: 'David Hoffman' }
+    },
+    {
+        id: 'p6',
+        title: 'SecureGate Auth',
+        description: 'Next-gen biometric authentication layer for web applications.',
+        vision: 'Making the internet safer by eliminating the password entirely.',
+        sector: 'Cybersecurity',
+        skills_needed: ['WebAuthn', 'C++', 'Wasm', 'Next.js'],
+        team_size_needed: 3,
+        member_count: 2,
+        status: 'in-progress',
+        commitment: 'high',
+        created_at: '2025-12-10T15:20:00Z',
+        last_activity: '2026-01-04T22:30:00Z',
+        open_roles: ['Security Researcher'],
+        applications_pending: 1,
+        founder: { id: 'f3', name: 'Samir Al-Fayed' }
+    },
+    {
+        id: 'p7',
+        title: 'FinFlow Dashboard',
+        description: 'Simplified financial tracking for early-stage startup founders.',
+        vision: 'Clarity in chaos. Manage your runway without a spreadsheet.',
+        sector: 'FinTech',
+        skills_needed: ['Stripe API', 'Plaid SDK', 'React', 'Tailwind'],
+        team_size_needed: 2,
+        member_count: 1,
+        status: 'open',
+        commitment: 'low',
+        created_at: '2026-01-03T10:00:00Z',
+        last_activity: '2026-01-05T06:00:00Z',
+        open_roles: ['Full Stack Developer'],
+        applications_pending: 4,
+        founder: { id: 'f2', name: 'Linda Gao' }
+    },
+    {
+        id: 'p8',
+        title: 'OpenPort Portfolio',
+        description: 'An open-source portfolio builder for developers to showcase their PRs and commits.',
+        vision: 'Your work speaks louder than your resume.',
+        sector: 'SaaS & Enterprise',
+        skills_needed: ['GitHub API', 'Next.js', 'Prisma', 'Postgres'],
+        team_size_needed: 4,
+        member_count: 2,
+        status: 'open',
+        commitment: 'medium',
+        created_at: '2026-01-01T12:00:00Z',
+        last_activity: '2026-01-04T18:00:00Z',
+        open_roles: ['Backend Developer', 'DevOps'],
+        applications_pending: 2,
+        founder: { id: 'f1', name: 'David Hoffman' }
+    }
+];
+
+// User applications (for builder dashboard)
+export const MOCK_USER_APPLICATIONS: Application[] = [
+    {
+        id: 'ua1',
+        project_id: 'p1',
+        project_title: 'Nexus AI Resume Optimizer',
+        applicant_id: 'b1',
+        applicant_name: 'Alex Rivers',
+        role_applied: 'Frontend Lead',
+        status: 'accepted',
+        applied_at: '2025-12-18T10:00:00Z'
+    },
+    {
+        id: 'ua2',
+        project_id: 'p4',
+        project_title: 'BitProperty Exchange',
+        applicant_id: 'b1',
+        applicant_name: 'Alex Rivers',
+        role_applied: 'Frontend Lead',
+        status: 'pending',
+        applied_at: '2026-01-02T14:30:00Z',
+        action_required: true
+    },
+    {
+        id: 'ua3',
+        project_id: 'p7',
+        project_title: 'FinFlow Dashboard',
+        applicant_id: 'b1',
+        applicant_name: 'Alex Rivers',
+        role_applied: 'Full Stack Developer',
+        status: 'pending',
+        applied_at: '2026-01-04T09:15:00Z'
+    },
+    {
+        id: 'ua4',
+        project_id: 'p3',
+        project_title: 'EcoLogistics Hub',
+        applicant_id: 'b1',
+        applicant_name: 'Alex Rivers',
+        role_applied: 'Frontend Developer',
+        status: 'rejected',
+        applied_at: '2025-12-30T11:00:00Z'
+    }
+];
+
+// Incoming applications for founders
+export const MOCK_INCOMING_APPLICATIONS: Application[] = [
+    {
+        id: 'ia1',
+        project_id: 'p1',
+        project_title: 'Nexus AI Resume Optimizer',
+        applicant_id: 'b4',
+        applicant_name: 'Elena Rodriguez',
+        applicant_avatar: 'https://i.pravatar.cc/150?u=b4',
+        role_applied: 'Data Analyst',
+        status: 'pending',
+        applied_at: '2026-01-04T14:00:00Z'
+    },
+    {
+        id: 'ia2',
+        project_id: 'p1',
+        project_title: 'Nexus AI Resume Optimizer',
+        applicant_id: 'b3',
+        applicant_name: 'Marcus Thorne',
+        applicant_avatar: 'https://i.pravatar.cc/150?u=b3',
+        role_applied: 'Backend Engineer',
+        status: 'pending',
+        applied_at: '2026-01-05T08:30:00Z'
+    },
+    {
+        id: 'ia3',
+        project_id: 'p8',
+        project_title: 'OpenPort Portfolio',
+        applicant_id: 'b5',
+        applicant_name: 'Jason Kim',
+        applicant_avatar: 'https://i.pravatar.cc/150?u=b5',
+        role_applied: 'Full Stack Dev',
+        status: 'pending',
+        applied_at: '2026-01-03T16:20:00Z'
+    },
+    {
+        id: 'ia4',
+        project_id: 'p8',
+        project_title: 'OpenPort Portfolio',
+        applicant_id: 'b6',
+        applicant_name: 'Priya Sharma',
+        applicant_avatar: 'https://i.pravatar.cc/150?u=b6',
+        role_applied: 'DevOps Engineer',
+        status: 'pending',
+        applied_at: '2026-01-04T11:45:00Z'
+    }
+];
+
+// Team members for founder dashboard
+export const MOCK_TEAM_MEMBERS: TeamMember[] = [
+    {
+        id: 'tm1',
+        user_id: 'f1',
+        name: 'David Hoffman',
+        avatar_url: 'https://i.pravatar.cc/150?u=f1',
+        role: 'Project Lead',
+        role_badge: 'founder',
+        joined_at: '2025-12-15T09:00:00Z',
+        project_id: 'p1',
+        status: 'active'
+    },
+    {
+        id: 'tm2',
+        user_id: 'b1',
+        name: 'Alex Rivers',
+        avatar_url: 'https://i.pravatar.cc/150?u=b1',
+        role: 'Frontend Lead',
+        role_badge: 'lead',
+        joined_at: '2025-12-20T10:00:00Z',
+        project_id: 'p1',
+        status: 'active'
+    },
+    {
+        id: 'tm3',
+        user_id: 'b2',
+        name: 'Sarah Chen',
+        avatar_url: 'https://i.pravatar.cc/150?u=b2',
+        role: 'UI/UX Designer',
+        role_badge: 'designer',
+        joined_at: '2025-12-22T14:30:00Z',
+        project_id: 'p1',
+        status: 'active'
+    },
+    {
+        id: 'tm4',
+        user_id: 'f1',
+        name: 'David Hoffman',
+        avatar_url: 'https://i.pravatar.cc/150?u=f1',
+        role: 'Project Lead',
+        role_badge: 'founder',
+        joined_at: '2026-01-01T12:00:00Z',
+        project_id: 'p8',
+        status: 'active'
+    },
+    {
+        id: 'tm5',
+        user_id: 'b3',
+        name: 'Marcus Thorne',
+        avatar_url: 'https://i.pravatar.cc/150?u=b3',
+        role: 'Backend Engineer',
+        role_badge: 'developer',
+        joined_at: '2026-01-02T09:00:00Z',
+        project_id: 'p8',
+        status: 'active'
+    }
+];
+
+// Active projects for user dashboard
+export const MOCK_ACTIVE_PROJECTS = [
+    {
+        id: 'ap1',
+        project_id: 'p1',
+        project_title: 'Nexus AI Resume Optimizer',
+        role: 'Frontend Lead',
+        status: 'active' as const,
+        last_activity: '2026-01-05T08:30:00Z',
+        founder_name: 'David Hoffman'
+    },
+    {
+        id: 'ap2',
+        project_id: 'p6',
+        project_title: 'SecureGate Auth',
+        role: 'Frontend Developer',
+        status: 'active' as const,
+        last_activity: '2026-01-04T22:30:00Z',
+        founder_name: 'Samir Al-Fayed'
+    },
+    {
+        id: 'ap3',
+        project_id: 'p5',
+        project_title: 'LearnLoop Community',
+        role: 'UI Engineer',
+        status: 'archived' as const,
+        last_activity: '2025-12-20T10:00:00Z',
+        founder_name: 'David Hoffman'
+    }
+];
+
+export const MOCK_ROOMS: ChatRoom[] = [
+    // Project channels
+    {
+        id: 'r1',
+        name: 'Nexus AI Project',
+        type: 'project',
+        project_id: 'p1',
+        project_name: 'Nexus AI Resume Optimizer',
+        last_message: 'API integration tests passing now.',
+        last_message_time: '2026-01-05T08:45:00Z',
+        unread_count: 3,
+        updated_at: '2026-01-05T08:45:00Z',
+        members_count: 4
+    },
+    {
+        id: 'r2',
+        name: 'HealTrack Development',
+        type: 'project',
+        project_id: 'p2',
+        project_name: 'HealTrack V2',
+        last_message: 'HIPAA module passed audit.',
+        last_message_time: '2026-01-04T18:20:00Z',
+        unread_count: 0,
+        updated_at: '2026-01-04T18:20:00Z',
+        members_count: 5
+    },
+    {
+        id: 'r7',
+        name: 'BitProperty Exchange',
+        type: 'project',
+        project_id: 'p4',
+        project_name: 'BitProperty Exchange',
+        last_message: 'Smart contract deployed to testnet.',
+        last_message_time: '2026-01-05T07:30:00Z',
+        unread_count: 5,
+        updated_at: '2026-01-05T07:30:00Z',
+        members_count: 3
+    },
+    {
+        id: 'r8',
+        name: 'SecureGate Auth',
+        type: 'project',
+        project_id: 'p6',
+        project_name: 'SecureGate Auth',
+        last_message: 'WebAuthn implementation complete.',
+        last_message_time: '2026-01-04T22:30:00Z',
+        unread_count: 1,
+        updated_at: '2026-01-04T22:30:00Z',
+        members_count: 2
+    },
+    {
+        id: 'r9',
+        name: 'OpenPort Portfolio',
+        type: 'project',
+        project_id: 'p8',
+        project_name: 'OpenPort Portfolio',
+        last_message: 'GitHub OAuth working.',
+        last_message_time: '2026-01-04T18:00:00Z',
+        unread_count: 0,
+        updated_at: '2026-01-04T18:00:00Z',
+        members_count: 2
+    },
+    // Direct messages
+    {
+        id: 'r3',
+        name: 'David Hoffman',
+        type: 'direct',
+        last_message: 'Welcome to the team, Alex!',
+        last_message_time: '2026-01-04T10:15:00Z',
+        unread_count: 0,
+        updated_at: '2026-01-04T10:15:00Z'
+    },
+    {
+        id: 'r4',
+        name: 'Sarah Chen',
+        type: 'direct',
+        last_message: 'Designs are in Figma. Check when ready.',
+        last_message_time: '2026-01-04T12:30:00Z',
+        unread_count: 2,
+        updated_at: '2026-01-04T12:30:00Z'
+    },
+    {
+        id: 'r5',
+        name: 'Marcus Thorne',
+        type: 'direct',
+        last_message: 'Database migration complete.',
+        last_message_time: '2026-01-04T14:00:00Z',
+        unread_count: 0,
+        updated_at: '2026-01-04T14:00:00Z'
+    },
+    {
+        id: 'r6',
+        name: 'Linda Gao',
+        type: 'direct',
+        last_message: 'Meeting scheduled for Monday.',
+        last_message_time: '2026-01-02T09:00:00Z',
+        unread_count: 0,
+        updated_at: '2026-01-02T09:00:00Z'
+    },
+    {
+        id: 'r10',
+        name: 'Priya Sharma',
+        type: 'direct',
+        last_message: 'Push notifications are live now.',
+        last_message_time: '2026-01-03T16:45:00Z',
+        unread_count: 1,
+        updated_at: '2026-01-03T16:45:00Z'
+    }
+];
+
+export const MOCK_MESSAGES: Record<string, Message[]> = {
+    'r1': [
+        { id: 'm1', room_id: 'r1', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Project Lead', content: 'Team, we need to finalize the MVP scope by Friday. Please review the requirements doc I shared.', created_at: '2026-01-04T10:00:00Z', is_read: true },
+        { id: 'm2', room_id: 'r1', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Lead', content: 'Working on the landing page auth flow now. Should be ready for review tomorrow.', created_at: '2026-01-04T10:15:00Z', is_read: true },
+        { id: 'm3', room_id: 'r1', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Lead', content: 'Also updated the component library with the new design tokens.', created_at: '2026-01-04T10:16:00Z', is_read: true },
+        { id: 'm4', room_id: 'r1', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'UI/UX Designer', content: 'Great work on the tokens. The Figma file is updated with all the latest screens.', created_at: '2026-01-04T10:30:00Z', is_read: true },
+        { id: 'm5', room_id: 'r1', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Project Lead', content: 'Perfect. Let me know if you need any clarification on the user flow.', created_at: '2026-01-04T11:00:00Z', is_read: true },
+        { id: 'm6', room_id: 'r1', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Lead', content: 'One question - should the resume parser handle PDF files only or also DOCX?', created_at: '2026-01-04T14:00:00Z', is_read: true },
+        { id: 'm7', room_id: 'r1', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Project Lead', content: 'Both formats. We need to support the most common resume formats. DOCX, PDF, and plain text.', created_at: '2026-01-04T14:05:00Z', is_read: true },
+        { id: 'm8', room_id: 'r1', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Lead', content: 'Got it. Will update the file upload component.', created_at: '2026-01-04T14:10:00Z', is_read: true },
+        { id: 'm9', room_id: 'r1', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'UI/UX Designer', content: 'I added some error state designs for invalid file formats.', created_at: '2026-01-04T15:30:00Z', is_read: true },
+        { id: 'm10', room_id: 'r1', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Project Lead', content: 'Sprint planning tomorrow at 10 AM. Please be prepared with your updates.', created_at: '2026-01-04T17:00:00Z', is_read: true },
+        { id: 'm11', room_id: 'r1', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Lead', content: 'Will be there. Just pushed the latest changes to staging.', created_at: '2026-01-04T18:00:00Z', is_read: true },
+        { id: 'm12', room_id: 'r1', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Project Lead', content: 'Morning team. Ready for the sprint planning call?', created_at: '2026-01-05T09:55:00Z', is_read: true },
+        { id: 'm13', room_id: 'r1', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'UI/UX Designer', content: 'Yes, joining now.', created_at: '2026-01-05T09:58:00Z', is_read: true },
+        { id: 'm14', room_id: 'r1', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Lead', content: 'API integration tests passing now.', created_at: '2026-01-05T08:45:00Z', is_read: false }
+    ],
+    'r3': [
+        { id: 'm15', room_id: 'r3', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Founder', content: 'Hey Alex, saw your work on the dashboard. Impressive speed.', created_at: '2026-01-04T08:00:00Z', is_read: true },
+        { id: 'm16', room_id: 'r3', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Developer', content: 'Thanks David! Just cleaning up some state management logic.', created_at: '2026-01-04T09:15:00Z', is_read: true },
+        { id: 'm17', room_id: 'r3', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Founder', content: 'Your attention to detail is exactly what this project needs.', created_at: '2026-01-04T09:30:00Z', is_read: true },
+        { id: 'm18', room_id: 'r3', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Founder', content: 'Welcome to the team, Alex!', created_at: '2026-01-04T10:15:00Z', is_read: true }
+    ],
+    'r4': [
+        { id: 'm19', room_id: 'r4', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'Designer', content: 'Hey! Quick question about the color palette.', created_at: '2026-01-04T11:00:00Z', is_read: true },
+        { id: 'm20', room_id: 'r4', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Developer', content: 'Sure, what do you need?', created_at: '2026-01-04T11:05:00Z', is_read: true },
+        { id: 'm21', room_id: 'r4', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'Designer', content: 'Should we use the primary blue for CTAs or the gradient version?', created_at: '2026-01-04T11:10:00Z', is_read: true },
+        { id: 'm22', room_id: 'r4', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Developer', content: 'I think solid blue works better for accessibility. Gradients can have contrast issues.', created_at: '2026-01-04T11:15:00Z', is_read: true },
+        { id: 'm23', room_id: 'r4', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'Designer', content: 'Good point. Will update the design system.', created_at: '2026-01-04T11:20:00Z', is_read: true },
+        { id: 'm24', room_id: 'r4', sender_id: 'b2', sender_name: 'Sarah Chen', sender_role: 'user', sender_role_title: 'Designer', content: 'Designs are in Figma. Check when ready.', created_at: '2026-01-04T12:30:00Z', is_read: false }
+    ],
+    'r7': [
+        { id: 'm25', room_id: 'r7', sender_id: 'f3', sender_name: 'Samir Al-Fayed', sender_role: 'founder', sender_role_title: 'Founder', content: 'Team, we have a big update. The legal framework for tokenization is approved.', created_at: '2026-01-04T09:00:00Z', is_read: true },
+        { id: 'm26', room_id: 'r7', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Engineer', content: 'Excellent news! I can now finalize the smart contract architecture.', created_at: '2026-01-04T09:15:00Z', is_read: true },
+        { id: 'm27', room_id: 'r7', sender_id: 'f3', sender_name: 'Samir Al-Fayed', sender_role: 'founder', sender_role_title: 'Founder', content: 'Please prioritize the escrow functionality. That is critical for our first release.', created_at: '2026-01-04T09:20:00Z', is_read: true },
+        { id: 'm28', room_id: 'r7', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Engineer', content: 'Will do. I estimate 3 days for the escrow contract.', created_at: '2026-01-04T09:25:00Z', is_read: true },
+        { id: 'm29', room_id: 'r7', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Engineer', content: 'Also need to discuss gas optimization strategies.', created_at: '2026-01-04T09:26:00Z', is_read: true },
+        { id: 'm30', room_id: 'r7', sender_id: 'f3', sender_name: 'Samir Al-Fayed', sender_role: 'founder', sender_role_title: 'Founder', content: 'Let us schedule a call tomorrow.', created_at: '2026-01-04T09:30:00Z', is_read: true },
+        { id: 'm31', room_id: 'r7', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Engineer', content: 'Smart contract deployed to testnet.', created_at: '2026-01-05T07:30:00Z', is_read: false }
+    ],
+    'r8': [
+        { id: 'm32', room_id: 'r8', sender_id: 'f3', sender_name: 'Samir Al-Fayed', sender_role: 'founder', sender_role_title: 'Founder', content: 'How is the WebAuthn integration coming along?', created_at: '2026-01-04T16:00:00Z', is_read: true },
+        { id: 'm33', room_id: 'r8', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Developer', content: 'Good progress. The browser support is tricky but manageable.', created_at: '2026-01-04T16:30:00Z', is_read: true },
+        { id: 'm34', room_id: 'r8', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Developer', content: 'Safari requires some polyfills.', created_at: '2026-01-04T16:31:00Z', is_read: true },
+        { id: 'm35', room_id: 'r8', sender_id: 'f3', sender_name: 'Samir Al-Fayed', sender_role: 'founder', sender_role_title: 'Founder', content: 'Whatever it takes. Security cannot be compromised.', created_at: '2026-01-04T17:00:00Z', is_read: true },
+        { id: 'm36', room_id: 'r8', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Frontend Developer', content: 'WebAuthn implementation complete.', created_at: '2026-01-04T22:30:00Z', is_read: false }
+    ],
+    'r5': [
+        { id: 'm37', room_id: 'r5', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Engineer', content: 'Hey, quick sync on the API schema?', created_at: '2026-01-04T13:00:00Z', is_read: true },
+        { id: 'm38', room_id: 'r5', sender_id: 'b1', sender_name: 'Alex Rivers', sender_role: 'user', sender_role_title: 'Developer', content: 'Sure. What is the endpoint structure?', created_at: '2026-01-04T13:10:00Z', is_read: true },
+        { id: 'm39', room_id: 'r5', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Engineer', content: 'I will send you the OpenAPI spec in a minute.', created_at: '2026-01-04T13:15:00Z', is_read: true },
+        { id: 'm40', room_id: 'r5', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Engineer', content: 'Database migration complete.', created_at: '2026-01-04T14:00:00Z', is_read: true }
+    ],
+    'r9': [
+        { id: 'm41', room_id: 'r9', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Founder', content: 'OpenPort is gaining traction. 50 signups this week.', created_at: '2026-01-04T15:00:00Z', is_read: true },
+        { id: 'm42', room_id: 'r9', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Developer', content: 'That is great! The GitHub integration is working smoothly.', created_at: '2026-01-04T15:30:00Z', is_read: true },
+        { id: 'm43', room_id: 'r9', sender_id: 'f1', sender_name: 'David Hoffman', sender_role: 'founder', sender_role_title: 'Founder', content: 'Can we add GitLab support next sprint?', created_at: '2026-01-04T16:00:00Z', is_read: true },
+        { id: 'm44', room_id: 'r9', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Developer', content: 'Yes, I can scope that out. Similar OAuth flow.', created_at: '2026-01-04T16:15:00Z', is_read: true },
+        { id: 'm45', room_id: 'r9', sender_id: 'b3', sender_name: 'Marcus Thorne', sender_role: 'user', sender_role_title: 'Backend Developer', content: 'GitHub OAuth working.', created_at: '2026-01-04T18:00:00Z', is_read: true }
+    ]
+};
+
+export const MOCK_NOTIFICATIONS = [
+    { id: 'n1', type: 'success', text: 'Application accepted for Nexus AI Resume Optimizer', time: '2h ago', read: false },
+    { id: 'n2', type: 'message', text: 'New message from David Hoffman', time: '5h ago', read: false },
+    { id: 'n3', type: 'info', text: 'Profile verification pending review', time: '1d ago', read: true },
+    { id: 'n4', type: 'warning', text: 'Complete your profile to apply for projects', time: '2d ago', read: true }
+];
+
+export const MOCK_METRICS = {
+    builder: {
+        projects_joined: 3,
+        applications_sent: 4,
+        pending_requests: 2,
+        active_chats: 5
+    },
+    founder: {
+        total_projects: 3,
+        active_members: 5,
+        pending_applicants: 4,
+        uptime_percentage: 99.9
+    }
+};
+
+// Helper for relative time
+export function formatRelativeTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}

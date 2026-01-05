@@ -1,8 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: '.',
+  // Remove experimental turbopack config for production
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+    ],
+  },
+  // Ensure proper handling of environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 };
 

@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { OTPInput } from '@/components/OTPInput';
-import { ArrowLeft, Mail, Smartphone, Clock } from 'lucide-react';
+import { ArrowLeft, Mail, Smartphone, Clock, Loader2, Package } from 'lucide-react';
 import { toast } from '@/components/Toast';
 
 type VerificationType = 'email' | 'phone' | '2fa';
 
-export default function VerifyOTPPage() {
+function OTPVerificationForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { profile, verifyOTP, sendOTP } = useAuth();
@@ -38,27 +38,20 @@ export default function VerifyOTPPage() {
 
         try {
             if (type === '2fa') {
-                // 2FA verification handled separately
                 toast.success('2FA verification successful!');
                 router.push('/dashboard/builder');
             } else {
                 const { error } = await verifyOTP(type, otp);
 
                 if (error) {
-                    toast.error(error.message || 'Invalid OTP code. Please try again.');
+                    toast.error(error.message || 'Invalid OTP code.');
                 } else {
-                    toast.success(`${type === 'email' ? 'Email' : 'Phone'} verified successfully!`);
-
-                    // Route based on verification type
-                    if (type === 'email') {
-                        router.push('/verify-phone');
-                    } else {
-                        router.push('/profile/complete');
-                    }
+                    toast.success(`${type === 'email' ? 'Email' : 'Phone'} verified!`);
+                    router.push(type === 'email' ? '/verify-phone' : '/profile/complete');
                 }
             }
         } catch (err) {
-            toast.error('Verification failed. Please try again.');
+            toast.error('Verification failed.');
         } finally {
             setLoading(false);
         }
@@ -68,7 +61,6 @@ export default function VerifyOTPPage() {
         if (cooldown > 0 || !profile || type === '2fa') return;
 
         setResendLoading(true);
-
         try {
             const value = type === 'email' ? profile.email : profile.phone || '';
             const { error } = await sendOTP(type, value);
@@ -93,21 +85,18 @@ export default function VerifyOTPPage() {
                     icon: Clock,
                     title: 'Two-Factor Authentication',
                     description: 'Enter the 6-digit code from your authenticator app',
-                    contact: 'your authenticator app',
                 };
             case 'phone':
                 return {
                     icon: Smartphone,
                     title: 'Verify Phone Number',
                     description: 'Enter the 6-digit code sent to your phone',
-                    contact: profile?.phone || 'your phone',
                 };
             default:
                 return {
                     icon: Mail,
                     title: 'Verify Email',
                     description: 'Enter the 6-digit code sent to your email',
-                    contact: profile?.email || 'your email',
                 };
         }
     };
@@ -116,61 +105,63 @@ export default function VerifyOTPPage() {
     const Icon = config.icon;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+        <div className="space-y-6">
+            <div className="flex justify-center">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-7 h-7 text-primary" />
+                </div>
+            </div>
 
-            <div className="relative w-full max-w-md">
-                {/* Back Button */}
-                <Link
-                    href="/login"
-                    className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors"
+            <div className="text-center space-y-2">
+                <h1 className="text-xl font-bold">{config.title}</h1>
+                <p className="text-sm text-muted-foreground">{config.description}</p>
+            </div>
+
+            <div className="py-4">
+                <OTPInput onComplete={handleComplete} loading={loading} />
+            </div>
+
+            <div className="text-center space-y-2">
+                <p className="text-xs text-muted-foreground">Didn't receive the code?</p>
+                <button
+                    onClick={handleResend}
+                    disabled={cooldown > 0 || resendLoading}
+                    className="text-primary text-sm font-medium disabled:opacity-50"
                 >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                </Link>
+                    {cooldown > 0 ? `Resend in ${cooldown}s` : resendLoading ? 'Sending...' : 'Resend Code'}
+                </button>
+            </div>
+        </div>
+    );
+}
 
-                {/* Card */}
-                <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-8 shadow-2xl">
-                    {/* Icon */}
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-6">
-                        <Icon className="w-8 h-8 text-white" />
-                    </div>
+function LoadingFallback() {
+    return (
+        <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+    );
+}
 
-                    <h2 className="text-2xl font-semibold text-white text-center mb-2">
-                        {config.title}
-                    </h2>
-                    <p className="text-slate-400 text-center mb-8">
-                        {config.description}
-                    </p>
+export default function VerifyOTPPage() {
+    return (
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+            <div className="w-full max-w-md space-y-6">
+                <div className="flex items-center justify-between">
+                    <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                    </Link>
+                    <Link href="/">
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                            <Package className="h-4 w-4 text-primary-foreground" />
+                        </div>
+                    </Link>
+                </div>
 
-                    {/* OTP Input */}
-                    <div className="mb-6">
-                        <OTPInput onComplete={handleComplete} loading={loading} />
-                    </div>
-
-                    {/* Resend */}
-                    <div className="text-center mb-6">
-                        <p className="text-sm text-slate-400 mb-2">
-                            Didn't receive the code?
-                        </p>
-                        <button
-                            onClick={handleResend}
-                            disabled={cooldown > 0 || resendLoading}
-                            className="text-purple-400 hover:text-purple-300 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {cooldown > 0 ? `Resend in ${cooldown}s` : resendLoading ? 'Sending...' : 'Resend Code'}
-                        </button>
-                    </div>
-
-                    {/* Help Text */}
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-                        <p className="text-xs text-blue-300 text-center">
-                            {type === '2fa'
-                                ? 'Open your authenticator app to get the code'
-                                : `Check ${config.contact} for the verification code. It may take a few minutes to arrive.`
-                            }
-                        </p>
-                    </div>
+                <div className="p-6 bg-card border rounded-xl">
+                    <Suspense fallback={<LoadingFallback />}>
+                        <OTPVerificationForm />
+                    </Suspense>
                 </div>
             </div>
         </div>

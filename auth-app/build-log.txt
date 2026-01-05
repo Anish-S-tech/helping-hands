@@ -1,0 +1,109 @@
+﻿
+> helping-hands@0.1.0 build
+> next build
+
+node.exe :  ÔÜá Warning: 
+Next.js inferred your 
+workspace root, but it may 
+not be correct.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: ( ÔÜá   
+  Warning: N...not be cor   
+ rect.:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+ We detected multiple 
+lockfiles and selected the 
+directory of C:\Users\HP\pac
+kage-lock.json as the root 
+directory.
+ To silence this warning, 
+set `turbopack.root` in 
+your Next.js config, or 
+consider removing one of 
+the lockfiles if it's not 
+needed.
+   See https://nextjs.org/do
+cs/app/api-reference/config/
+next-config-js/turbopack#roo
+t-directory for more 
+information.
+ Detected additional 
+lockfiles: 
+   * C:\Users\HP\ub studios\
+auth-app\package-lock.json
+   * C:\Users\HP\ub 
+studios\package-lock.json
+
+   Ôû▓ Next.js 16.0.10 (Turbopack)
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully in 6.9s
+   Running TypeScript ...
+   Collecting page data using 15 workers ...
+   Generating static pages using 15 workers (0/36) ...
+ReferenceError: location is 
+not defined
+    at l (C:\Users\HP\ub stu
+dios\auth-app\.next\server\c
+hunks\ssr\ub studios_auth-ap
+p_f477e161._.js:1:1829)
+   Generating static pages using 15 workers (9/36) 
+   Generating static pages using 15 workers (18/36) 
+   Generating static pages using 15 workers (27/36) 
+ Ô£ô Generating static pages using 15 workers (36/36) in 1349.1ms
+   Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ ãÆ /auth/callback
+Ôö£ Ôùï /builder/login
+Ôö£ Ôùï /builder/signup
+Ôö£ Ôùï /chat
+Ôö£ ãÆ /chat/[roomId]
+Ôö£ Ôùï /dashboard/builder
+Ôö£ Ôùï /dashboard/founder
+Ôö£ Ôùï /explore
+Ôö£ Ôùï /forgot-password
+Ôö£ Ôùï /founder/login
+Ôö£ Ôùï /founder/signup
+Ôö£ Ôùï /login
+Ôö£ Ôùï /login/founder
+Ôö£ Ôùï /login/user
+Ôö£ ãÆ /profile/[id]
+Ôö£ Ôùï /profile/complete
+Ôö£ Ôùï /profile/complete/builder
+Ôö£ Ôùï /profile/complete/founder
+Ôö£ Ôùï /profile/edit
+Ôö£ Ôùï /profile/founder
+Ôö£ ãÆ /projects/[id]
+Ôö£ Ôùï /projects/create
+Ôö£ Ôùï /projects/new
+Ôö£ Ôùï /reset-password
+Ôö£ Ôùï /settings
+Ôö£ Ôùï /settings/2fa-setup
+Ôö£ Ôùï /settings/account
+Ôö£ Ôùï /settings/notifications
+Ôö£ Ôùï /settings/privacy
+Ôö£ Ôùï /signup
+Ôö£ Ôùï /signup/founder
+Ôö£ Ôùï /signup/user
+Ôö£ Ôùï /verify-email
+Ôö£ Ôùï /verify-otp
+Ôöö Ôùï /verify-phone
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

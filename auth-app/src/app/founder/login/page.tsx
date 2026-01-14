@@ -22,7 +22,7 @@ export default function FounderLoginPage() {
         setError('');
         setLoading(true);
 
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(email, password, 'founder');
 
         if (error) {
             setError(error.message);

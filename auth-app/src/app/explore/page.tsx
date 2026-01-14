@@ -15,8 +15,9 @@ import {
     Sparkles,
     Filter
 } from 'lucide-react';
-import { MOCK_PROJECTS } from '@/data/mock-data';
+import { MOCK_PROJECTS, ProjectPhase } from '@/data/mock-data';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,15 @@ const SECTORS = [
     'Web3',
 ];
 
+const PHASES: { label: string; value: ProjectPhase | 'all' }[] = [
+    { label: 'All Phases', value: 'all' },
+    { label: 'Idea', value: 'idea' },
+    { label: 'Planning', value: 'planning' },
+    { label: 'Active', value: 'active' },
+    { label: 'Review', value: 'review' },
+    { label: 'Completed', value: 'completed' },
+];
+
 export default function ExplorePage() {
     const router = useRouter();
     const { profile, supabase, loading: authLoading } = useAuth();
@@ -59,6 +69,7 @@ export default function ExplorePage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSector, setSelectedSector] = useState<string>('All');
+    const [selectedPhase, setSelectedPhase] = useState<ProjectPhase | 'all'>('all');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     useEffect(() => {
@@ -115,7 +126,9 @@ export default function ExplorePage() {
 
         const matchesSector = selectedSector === 'All' || project.sector?.includes(selectedSector.split(' ')[0]);
 
-        return matchesSearch && matchesSector;
+        const matchesPhase = selectedPhase === 'all' || (project as any).phase === selectedPhase;
+
+        return matchesSearch && matchesSector && matchesPhase;
     });
 
     if (authLoading) {
@@ -204,6 +217,19 @@ export default function ExplorePage() {
                             </Button>
                         ))}
                     </div>
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                        {PHASES.map(phase => (
+                            <Button
+                                key={phase.value}
+                                variant={selectedPhase === phase.value ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSelectedPhase(phase.value)}
+                                className="h-9 px-4 shrink-0 text-xs font-semibold"
+                            >
+                                {phase.label}
+                            </Button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Results */}
@@ -251,9 +277,12 @@ export default function ExplorePage() {
                                 >
                                     <CardHeader className="pb-3">
                                         <div className="flex items-center justify-between mb-2">
-                                            <Badge variant="outline" className="text-[10px] font-bold tracking-wider">
-                                                {project.sector || 'General'}
-                                            </Badge>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="text-[10px] font-bold tracking-wider">
+                                                    {project.sector || 'General'}
+                                                </Badge>
+                                                <ProjectPhaseBadge phase={(project as any).phase || 'active'} showIcon={false} />
+                                            </div>
                                             <div className="flex items-center text-[10px] text-muted-foreground font-medium">
                                                 <Clock className="h-3 w-3 mr-1" />
                                                 {new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

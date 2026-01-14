@@ -21,8 +21,11 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { toast } from '@/components/Toast';
-import { MOCK_PROJECTS } from '@/data/mock-data';
+import { MOCK_PROJECTS, MOCK_ANNOUNCEMENTS, MOCK_ACTIVITY_TIMELINE, ProjectPhase } from '@/data/mock-data';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
+import { ActivityTimeline } from '@/components/ActivityTimeline';
+import { AnnouncementList } from '@/components/AnnouncementCard';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -257,6 +260,7 @@ export default function ProjectDetailPage() {
                                 <Badge variant="secondary" className="px-2 py-0 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
                                     {project.sector}
                                 </Badge>
+                                <ProjectPhaseBadge phase={(project as any).phase as ProjectPhase || 'active'} />
                                 <div className="h-1 w-1 rounded-full bg-border" />
                                 <span className="text-xs text-muted-foreground font-medium">Node_{project.id.slice(0, 8)}</span>
                             </div>
@@ -385,6 +389,33 @@ export default function ProjectDetailPage() {
                                         </CardContent>
                                     </Card>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Announcements Section */}
+                        {MOCK_ANNOUNCEMENTS.filter(a => a.project_id === params.id).length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                    <BarChart3 className="h-5 w-5 text-primary" /> Team Announcements
+                                </h3>
+                                <AnnouncementList
+                                    announcements={MOCK_ANNOUNCEMENTS}
+                                    projectId={params.id as string}
+                                    maxItems={3}
+                                />
+                            </div>
+                        )}
+
+                        {/* Activity Timeline Section */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-primary" /> Activity Timeline
+                            </h3>
+                            <div className="bg-card/50 border rounded-lg p-6">
+                                <ActivityTimeline
+                                    activities={MOCK_ACTIVITY_TIMELINE.filter(a => a.project_id === params.id)}
+                                    maxItems={8}
+                                />
                             </div>
                         </div>
                     </div>

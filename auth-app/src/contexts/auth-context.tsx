@@ -78,7 +78,7 @@ interface AuthContextType {
   isFounder: boolean;
   profileComplete: boolean;
   signUp: (email: string, password: string, roleType: 'user' | 'founder') => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, roleType?: 'user' | 'founder') => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithGitHub: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -240,14 +240,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Sign in with email (Dummy)
-  const signIn = async (email: string, password: string) => {
-    // We'll default to a founder for login simulation or keep it simple
+  const signIn = async (email: string, password: string, roleType: 'user' | 'founder' = 'user') => {
     const dummyId = 'dummy-user-id';
     const dummyUser: User = {
       id: dummyId,
       email,
       app_metadata: {},
-      user_metadata: { role_type: 'founder' },
+      user_metadata: { role_type: roleType },
       aud: 'authenticated',
       created_at: new Date().toISOString(),
     } as any;
@@ -257,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user_id: dummyId,
       email,
       name: email.split('@')[0],
-      role_type: 'founder',
+      role_type: roleType,
       avatar_url: null,
       bio: null,
       experience_level: null,

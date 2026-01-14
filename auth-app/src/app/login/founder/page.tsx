@@ -38,7 +38,7 @@ export default function FounderLoginPage() {
         setLoading(true);
 
         try {
-            await signIn(email, password);
+            await signIn(email, password, 'founder');
             router.push('/dashboard/founder');
         } catch (err: any) {
             setError(err.message || 'Authentication failed. Please check your credentials.');

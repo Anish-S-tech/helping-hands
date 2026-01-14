@@ -22,7 +22,7 @@ export default function BuilderLoginPage() {
         setError('');
         setLoading(true);
 
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(email, password, 'user');
 
         if (error) {
             setError(error.message);

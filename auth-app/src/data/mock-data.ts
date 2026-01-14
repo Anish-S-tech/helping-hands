@@ -1,3 +1,9 @@
+// ===== TYPE DEFINITIONS =====
+
+export type ProjectPhase = 'idea' | 'planning' | 'active' | 'review' | 'completed' | 'archived';
+export type ProjectRole = 'founder' | 'team_lead' | 'contributor';
+export type ActivityType = 'member_joined' | 'role_assigned' | 'status_changed' | 'application_approved' | 'application_rejected' | 'announcement_posted';
+
 export interface Profile {
     id: string;
     full_name: string;
@@ -23,6 +29,7 @@ export interface Project {
     team_size_needed: number;
     member_count: number;
     status: 'open' | 'closed' | 'in-progress';
+    phase: ProjectPhase;
     commitment: 'low' | 'medium' | 'high';
     created_at: string;
     last_activity: string;
@@ -45,6 +52,7 @@ export interface Application {
     status: 'pending' | 'accepted' | 'rejected';
     applied_at: string;
     action_required?: boolean;
+    private_notes?: string;
 }
 
 export interface TeamMember {
@@ -54,6 +62,7 @@ export interface TeamMember {
     avatar_url?: string;
     role: string;
     role_badge: 'founder' | 'lead' | 'developer' | 'designer' | 'analyst';
+    project_role: ProjectRole;
     joined_at: string;
     project_id: string;
     status: 'active' | 'inactive';
@@ -66,6 +75,7 @@ export interface Message {
     sender_name: string;
     sender_role: 'founder' | 'user';
     sender_role_title: string;
+    sender_project_role?: ProjectRole;
     content: string;
     created_at: string;
     is_read: boolean;
@@ -77,6 +87,7 @@ export interface ChatRoom {
     type: 'project' | 'direct';
     project_id?: string;
     project_name?: string;
+    project_phase?: ProjectPhase;
     last_message?: string;
     last_message_time?: string;
     unread_count: number;
@@ -84,6 +95,126 @@ export interface ChatRoom {
     is_archived?: boolean;
     members_count?: number;
 }
+
+export interface Announcement {
+    id: string;
+    project_id: string;
+    author_id: string;
+    author_name: string;
+    author_role: ProjectRole;
+    content: string;
+    created_at: string;
+    is_pinned: boolean;
+}
+
+export interface ActivityEntry {
+    id: string;
+    project_id: string;
+    type: ActivityType;
+    actor_id: string;
+    actor_name: string;
+    target_id?: string;
+    target_name?: string;
+    description: string;
+    timestamp: string;
+}
+
+// ===== SETTINGS DATA =====
+export interface ActiveSession {
+    id: string;
+    device: string;
+    browser: string;
+    location: string;
+    ip_address: string;
+    last_active: string;
+    is_current: boolean;
+}
+
+export interface LinkedProvider {
+    provider: 'google' | 'github';
+    email: string;
+    connected_at: string;
+    is_connected: boolean;
+}
+
+export interface NotificationSettings {
+    in_app: boolean;
+    email: boolean;
+    mentions_only: boolean;
+    digest_frequency: 'instant' | 'daily' | 'weekly' | 'never';
+}
+
+export interface CommunicationSettings {
+    who_can_message: 'everyone' | 'team_only' | 'founder_only';
+    dm_enabled: boolean;
+    announcement_only_mode: boolean;
+    quiet_hours_enabled: boolean;
+    quiet_hours_start: string;
+    quiet_hours_end: string;
+    message_retention: '30_days' | '90_days' | '1_year' | 'forever';
+}
+
+export const MOCK_ACTIVE_SESSIONS: ActiveSession[] = [
+    {
+        id: 'session-1',
+        device: 'Windows PC',
+        browser: 'Chrome 120',
+        location: 'Mumbai, India',
+        ip_address: '192.168.1.***',
+        last_active: '2026-01-08T16:30:00Z',
+        is_current: true
+    },
+    {
+        id: 'session-2',
+        device: 'MacBook Pro',
+        browser: 'Safari 17',
+        location: 'Mumbai, India',
+        ip_address: '192.168.1.***',
+        last_active: '2026-01-07T14:20:00Z',
+        is_current: false
+    },
+    {
+        id: 'session-3',
+        device: 'iPhone 15',
+        browser: 'Safari Mobile',
+        location: 'Delhi, India',
+        ip_address: '103.25.***',
+        last_active: '2026-01-05T09:15:00Z',
+        is_current: false
+    }
+];
+
+export const MOCK_LINKED_PROVIDERS: LinkedProvider[] = [
+    {
+        provider: 'google',
+        email: 'david.hoffman@gmail.com',
+        connected_at: '2025-11-15T10:00:00Z',
+        is_connected: true
+    },
+    {
+        provider: 'github',
+        email: 'dhoffman',
+        connected_at: '2025-12-01T14:30:00Z',
+        is_connected: true
+    }
+];
+
+export const MOCK_NOTIFICATION_SETTINGS: NotificationSettings = {
+    in_app: true,
+    email: true,
+    mentions_only: false,
+    digest_frequency: 'daily'
+};
+
+export const MOCK_COMMUNICATION_SETTINGS: CommunicationSettings = {
+    who_can_message: 'team_only',
+    dm_enabled: true,
+    announcement_only_mode: false,
+    quiet_hours_enabled: false,
+    quiet_hours_start: '22:00',
+    quiet_hours_end: '08:00',
+    message_retention: '90_days'
+};
 
 export const MOCK_BUILDERS: Profile[] = [
     {
@@ -213,6 +344,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 4,
         member_count: 2,
         status: 'open',
+        phase: 'active',
         commitment: 'high',
         created_at: '2025-12-15T09:00:00Z',
         last_activity: '2026-01-05T08:30:00Z',
@@ -230,6 +362,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 5,
         member_count: 5,
         status: 'in-progress',
+        phase: 'review',
         commitment: 'high',
         created_at: '2025-11-20T14:30:00Z',
         last_activity: '2026-01-04T16:45:00Z',
@@ -247,6 +380,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 3,
         member_count: 1,
         status: 'open',
+        phase: 'planning',
         commitment: 'medium',
         created_at: '2025-12-28T11:00:00Z',
         last_activity: '2026-01-03T14:20:00Z',
@@ -264,6 +398,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 6,
         member_count: 3,
         status: 'open',
+        phase: 'active',
         commitment: 'high',
         created_at: '2026-01-02T16:45:00Z',
         last_activity: '2026-01-05T07:15:00Z',
@@ -281,6 +416,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 4,
         member_count: 4,
         status: 'closed',
+        phase: 'completed',
         commitment: 'medium',
         created_at: '2025-10-05T08:15:00Z',
         last_activity: '2025-12-20T10:00:00Z',
@@ -298,6 +434,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 3,
         member_count: 2,
         status: 'in-progress',
+        phase: 'active',
         commitment: 'high',
         created_at: '2025-12-10T15:20:00Z',
         last_activity: '2026-01-04T22:30:00Z',
@@ -315,6 +452,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 2,
         member_count: 1,
         status: 'open',
+        phase: 'idea',
         commitment: 'low',
         created_at: '2026-01-03T10:00:00Z',
         last_activity: '2026-01-05T06:00:00Z',
@@ -332,6 +470,7 @@ export const MOCK_PROJECTS: Project[] = [
         team_size_needed: 4,
         member_count: 2,
         status: 'open',
+        phase: 'planning',
         commitment: 'medium',
         created_at: '2026-01-01T12:00:00Z',
         last_activity: '2026-01-04T18:00:00Z',
@@ -443,6 +582,7 @@ export const MOCK_TEAM_MEMBERS: TeamMember[] = [
         avatar_url: 'https://i.pravatar.cc/150?u=f1',
         role: 'Project Lead',
         role_badge: 'founder',
+        project_role: 'founder',
         joined_at: '2025-12-15T09:00:00Z',
         project_id: 'p1',
         status: 'active'
@@ -454,6 +594,7 @@ export const MOCK_TEAM_MEMBERS: TeamMember[] = [
         avatar_url: 'https://i.pravatar.cc/150?u=b1',
         role: 'Frontend Lead',
         role_badge: 'lead',
+        project_role: 'team_lead',
         joined_at: '2025-12-20T10:00:00Z',
         project_id: 'p1',
         status: 'active'
@@ -465,6 +606,7 @@ export const MOCK_TEAM_MEMBERS: TeamMember[] = [
         avatar_url: 'https://i.pravatar.cc/150?u=b2',
         role: 'UI/UX Designer',
         role_badge: 'designer',
+        project_role: 'contributor',
         joined_at: '2025-12-22T14:30:00Z',
         project_id: 'p1',
         status: 'active'
@@ -476,6 +618,7 @@ export const MOCK_TEAM_MEMBERS: TeamMember[] = [
         avatar_url: 'https://i.pravatar.cc/150?u=f1',
         role: 'Project Lead',
         role_badge: 'founder',
+        project_role: 'founder',
         joined_at: '2026-01-01T12:00:00Z',
         project_id: 'p8',
         status: 'active'
@@ -487,6 +630,7 @@ export const MOCK_TEAM_MEMBERS: TeamMember[] = [
         avatar_url: 'https://i.pravatar.cc/150?u=b3',
         role: 'Backend Engineer',
         role_badge: 'developer',
+        project_role: 'contributor',
         joined_at: '2026-01-02T09:00:00Z',
         project_id: 'p8',
         status: 'active'
@@ -501,6 +645,7 @@ export const MOCK_ACTIVE_PROJECTS = [
         project_title: 'Nexus AI Resume Optimizer',
         role: 'Frontend Lead',
         status: 'active' as const,
+        phase: 'active' as const,
         last_activity: '2026-01-05T08:30:00Z',
         founder_name: 'David Hoffman'
     },
@@ -510,6 +655,7 @@ export const MOCK_ACTIVE_PROJECTS = [
         project_title: 'SecureGate Auth',
         role: 'Frontend Developer',
         status: 'active' as const,
+        phase: 'active' as const,
         last_activity: '2026-01-04T22:30:00Z',
         founder_name: 'Samir Al-Fayed'
     },
@@ -519,6 +665,7 @@ export const MOCK_ACTIVE_PROJECTS = [
         project_title: 'LearnLoop Community',
         role: 'UI Engineer',
         status: 'archived' as const,
+        phase: 'completed' as const,
         last_activity: '2025-12-20T10:00:00Z',
         founder_name: 'David Hoffman'
     }
@@ -733,3 +880,213 @@ export function formatRelativeTime(dateString: string): string {
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+// ===== ANNOUNCEMENTS =====
+export const MOCK_ANNOUNCEMENTS: Announcement[] = [
+    {
+        id: 'ann1',
+        project_id: 'p1',
+        author_id: 'f1',
+        author_name: 'David Hoffman',
+        author_role: 'founder',
+        content: 'Sprint planning scheduled for Monday 10 AM. All team members required to attend.',
+        created_at: '2026-01-05T08:00:00Z',
+        is_pinned: true
+    },
+    {
+        id: 'ann2',
+        project_id: 'p1',
+        author_id: 'f1',
+        author_name: 'David Hoffman',
+        author_role: 'founder',
+        content: 'MVP scope finalized. Focus on core features only for V1 release.',
+        created_at: '2026-01-04T15:00:00Z',
+        is_pinned: true
+    },
+    {
+        id: 'ann3',
+        project_id: 'p4',
+        author_id: 'f3',
+        author_name: 'Samir Al-Fayed',
+        author_role: 'founder',
+        content: 'Legal framework approved. We can proceed with smart contract deployment.',
+        created_at: '2026-01-04T09:00:00Z',
+        is_pinned: true
+    },
+    {
+        id: 'ann4',
+        project_id: 'p6',
+        author_id: 'f3',
+        author_name: 'Samir Al-Fayed',
+        author_role: 'founder',
+        content: 'Security audit scheduled for next week. Prepare all documentation.',
+        created_at: '2026-01-03T14:00:00Z',
+        is_pinned: false
+    },
+    {
+        id: 'ann5',
+        project_id: 'p8',
+        author_id: 'f1',
+        author_name: 'David Hoffman',
+        author_role: 'founder',
+        content: 'GitLab integration planned for next sprint. GitHub OAuth now live.',
+        created_at: '2026-01-04T17:00:00Z',
+        is_pinned: true
+    },
+    {
+        id: 'ann6',
+        project_id: 'p1',
+        author_id: 'b1',
+        author_name: 'Alex Rivers',
+        author_role: 'team_lead',
+        content: 'Design system updated. Please pull latest from main before starting work.',
+        created_at: '2026-01-03T10:00:00Z',
+        is_pinned: false
+    }
+];
+
+// ===== ACTIVITY TIMELINE =====
+export const MOCK_ACTIVITY_TIMELINE: ActivityEntry[] = [
+    {
+        id: 'act1',
+        project_id: 'p1',
+        type: 'member_joined',
+        actor_id: 'b1',
+        actor_name: 'Alex Rivers',
+        description: 'Alex Rivers joined the project as Frontend Lead',
+        timestamp: '2025-12-20T10:00:00Z'
+    },
+    {
+        id: 'act2',
+        project_id: 'p1',
+        type: 'role_assigned',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        target_id: 'b1',
+        target_name: 'Alex Rivers',
+        description: 'David Hoffman assigned Team Lead role to Alex Rivers',
+        timestamp: '2025-12-21T09:00:00Z'
+    },
+    {
+        id: 'act3',
+        project_id: 'p1',
+        type: 'member_joined',
+        actor_id: 'b2',
+        actor_name: 'Sarah Chen',
+        description: 'Sarah Chen joined the project as UI/UX Designer',
+        timestamp: '2025-12-22T14:30:00Z'
+    },
+    {
+        id: 'act4',
+        project_id: 'p1',
+        type: 'status_changed',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        description: 'Project status changed from Planning to Active',
+        timestamp: '2025-12-28T09:00:00Z'
+    },
+    {
+        id: 'act5',
+        project_id: 'p1',
+        type: 'application_approved',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        target_id: 'b1',
+        target_name: 'Alex Rivers',
+        description: 'David Hoffman approved application from Alex Rivers',
+        timestamp: '2025-12-18T10:30:00Z'
+    },
+    {
+        id: 'act6',
+        project_id: 'p1',
+        type: 'announcement_posted',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        description: 'David Hoffman posted a team announcement',
+        timestamp: '2026-01-05T08:00:00Z'
+    },
+    {
+        id: 'act7',
+        project_id: 'p4',
+        type: 'status_changed',
+        actor_id: 'f3',
+        actor_name: 'Samir Al-Fayed',
+        description: 'Project status changed from Planning to Active',
+        timestamp: '2026-01-02T16:45:00Z'
+    },
+    {
+        id: 'act8',
+        project_id: 'p4',
+        type: 'member_joined',
+        actor_id: 'b3',
+        actor_name: 'Marcus Thorne',
+        description: 'Marcus Thorne joined the project as Backend Engineer',
+        timestamp: '2026-01-03T09:00:00Z'
+    },
+    {
+        id: 'act9',
+        project_id: 'p8',
+        type: 'member_joined',
+        actor_id: 'b3',
+        actor_name: 'Marcus Thorne',
+        description: 'Marcus Thorne joined the project as Backend Developer',
+        timestamp: '2026-01-02T09:00:00Z'
+    },
+    {
+        id: 'act10',
+        project_id: 'p6',
+        type: 'status_changed',
+        actor_id: 'f3',
+        actor_name: 'Samir Al-Fayed',
+        description: 'Project status changed from Idea to Active',
+        timestamp: '2025-12-10T15:20:00Z'
+    },
+    {
+        id: 'act11',
+        project_id: 'p5',
+        type: 'status_changed',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        description: 'Project status changed from Active to Completed',
+        timestamp: '2025-12-20T10:00:00Z'
+    },
+    {
+        id: 'act12',
+        project_id: 'p2',
+        type: 'status_changed',
+        actor_id: 'f2',
+        actor_name: 'Linda Gao',
+        description: 'Project status changed from Active to Review',
+        timestamp: '2026-01-04T16:45:00Z'
+    },
+    {
+        id: 'act13',
+        project_id: 'p1',
+        type: 'application_rejected',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        target_id: 'b4',
+        target_name: 'Elena Rodriguez',
+        description: 'Application from Elena Rodriguez was declined',
+        timestamp: '2025-12-30T11:30:00Z'
+    },
+    {
+        id: 'act14',
+        project_id: 'p8',
+        type: 'announcement_posted',
+        actor_id: 'f1',
+        actor_name: 'David Hoffman',
+        description: 'David Hoffman posted a team announcement about GitLab integration',
+        timestamp: '2026-01-04T17:00:00Z'
+    },
+    {
+        id: 'act15',
+        project_id: 'p3',
+        type: 'status_changed',
+        actor_id: 'f2',
+        actor_name: 'Linda Gao',
+        description: 'Project status changed from Idea to Planning',
+        timestamp: '2025-12-28T11:00:00Z'
+    }
+];
+

@@ -21,7 +21,6 @@ export type { AlertProps } from './alert';
 export { Textarea } from './textarea';
 export type { TextareaProps } from './textarea';
 
-export { Select } from './select';
-export type { SelectProps } from './select';
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from './select';
 
 export { Separator } from './separator';

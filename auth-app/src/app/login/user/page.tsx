@@ -37,7 +37,7 @@ export default function UserLoginPage() {
         setLoading(true);
 
         try {
-            await signIn(email, password);
+            await signIn(email, password, 'user');
             router.push('/dashboard/builder');
         } catch (err: any) {
             setError(err.message || 'Authentication failed. Please check your credentials.');

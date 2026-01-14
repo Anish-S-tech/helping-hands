@@ -6,31 +6,28 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import {
     Plus,
-    ArrowUpRight,
+    ArrowRight,
     CheckCircle2,
     XCircle,
-    Clock,
     Users,
-    Loader2
+    Loader2,
+    AlertCircle,
+    MessageSquare,
+    FolderKanban,
+    Clock
 } from 'lucide-react';
 import {
     MOCK_PROJECTS,
     MOCK_INCOMING_APPLICATIONS,
     MOCK_TEAM_MEMBERS,
+    MOCK_ROOMS,
     formatRelativeTime
 } from '@/data/mock-data';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Skeleton, SkeletonTable } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     Tooltip,
@@ -51,6 +48,18 @@ export default function FounderDashboardPage() {
     const pendingApplications = MOCK_INCOMING_APPLICATIONS.filter(a => a.status === 'pending');
     const teamMembers = MOCK_TEAM_MEMBERS.filter(m => founderProjects.some(p => p.id === m.project_id));
 
+    // Direct messages
+    const directMessages = MOCK_ROOMS.filter(r => r.type === 'direct');
+    const unreadMessages = directMessages.filter(r => r.unread_count > 0);
+
+    // Stats
+    const stats = {
+        projects: founderProjects.length,
+        pending: pendingApplications.length,
+        team: teamMembers.length,
+        messages: unreadMessages.length
+    };
+
     useEffect(() => {
         if (!authLoading && !profile) {
             router.push('/login/founder');
@@ -66,58 +75,25 @@ export default function FounderDashboardPage() {
 
     const handleAccept = (id: string) => {
         setProcessingId(id);
-        // Simulate API call
         setTimeout(() => setProcessingId(null), 1000);
     };
 
     const handleReject = (id: string) => {
         setProcessingId(id);
-        // Simulate API call
         setTimeout(() => setProcessingId(null), 1000);
-    };
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'open':
-                return <Badge variant="active" className="text-[10px]">Open</Badge>;
-            case 'in-progress':
-                return <Badge variant="warning" className="text-[10px]">In Progress</Badge>;
-            case 'closed':
-                return <Badge variant="secondary" className="text-[10px]">Closed</Badge>;
-            default:
-                return <Badge variant="outline" className="text-[10px]">{status}</Badge>;
-        }
-    };
-
-    const getRoleBadge = (role: string) => {
-        switch (role) {
-            case 'founder':
-                return <Badge variant="premium" className="text-[9px]">Founder</Badge>;
-            case 'lead':
-                return <Badge variant="default" className="text-[9px]">Lead</Badge>;
-            case 'developer':
-                return <Badge variant="secondary" className="text-[9px]">Developer</Badge>;
-            case 'designer':
-                return <Badge variant="outline" className="text-[9px]">Designer</Badge>;
-            case 'analyst':
-                return <Badge variant="outline" className="text-[9px]">Analyst</Badge>;
-            default:
-                return <Badge variant="outline" className="text-[9px]">{role}</Badge>;
-        }
     };
 
     if (authLoading) {
         return (
             <DashboardLayout>
-                <div className="space-y-6 animate-fade-in-up">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-2">
-                            <Skeleton className="h-7 w-48" />
-                            <Skeleton className="h-4 w-72" />
-                        </div>
-                        <Skeleton className="h-9 w-32" />
+                <div className="space-y-6">
+                    <Skeleton className="h-8 w-64" />
+                    <div className="grid grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <Skeleton key={i} className="h-20" />
+                        ))}
                     </div>
-                    <SkeletonTable rows={4} />
+                    <Skeleton className="h-64 w-full" />
                 </div>
             </DashboardLayout>
         );
@@ -127,273 +103,298 @@ export default function FounderDashboardPage() {
         <TooltipProvider>
             <DashboardLayout>
                 <div className="space-y-6">
-                    {/* Compact Header */}
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between animate-fade-in-up">
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-                            <p className="text-sm text-muted-foreground mt-0.5">
-                                Welcome back, <span className="text-foreground font-medium">{profile?.name || 'Founder'}</span>
+                    {/* Clean Header */}
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-semibold tracking-tight">
+                                Welcome back, {profile?.name?.split(' ')[0] || 'Founder'}
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Manage your projects and team
                             </p>
                         </div>
                         <Button size="sm" asChild>
                             <Link href="/projects/create">
-                                <Plus className="mr-2 h-4 w-4" /> Create Project
+                                <Plus className="mr-2 h-4 w-4" /> New Project
                             </Link>
                         </Button>
                     </div>
 
-                    {/* My Projects Table */}
-                    <div className="border rounded-lg overflow-hidden animate-fade-in-up" style={{ animationDelay: '50ms' }}>
-                        <div className="px-4 py-3 bg-muted/20 border-b flex items-center justify-between">
-                            <div>
-                                <h2 className="text-sm font-semibold">My Projects</h2>
-                                <p className="text-xs text-muted-foreground mt-0.5">Manage your projects and team composition</p>
-                            </div>
-                            <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
-                                {founderProjects.length} Projects
-                            </Badge>
-                        </div>
-                        {loading ? (
-                            <div className="p-8 flex items-center justify-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                    <span className="text-sm text-muted-foreground">Loading projects...</span>
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="p-4 rounded-lg border border-border/50 bg-card/50">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <FolderKanban className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-semibold">{stats.projects}</p>
+                                    <p className="text-xs text-muted-foreground">Projects</p>
                                 </div>
                             </div>
-                        ) : founderProjects.length === 0 ? (
-                            <div className="p-8 text-center">
-                                <p className="text-sm text-muted-foreground">No projects yet. Create your first project to start building your team.</p>
-                                <Button size="sm" className="mt-3" asChild>
-                                    <Link href="/projects/create">Create Project</Link>
-                                </Button>
+                        </div>
+                        <div className={cn(
+                            "p-4 rounded-lg border bg-card/50",
+                            stats.pending > 0 ? "border-warning/30 bg-warning/5" : "border-border/50"
+                        )}>
+                            <div className="flex items-center gap-3">
+                                <div className={cn(
+                                    "h-10 w-10 rounded-lg flex items-center justify-center",
+                                    stats.pending > 0 ? "bg-warning/10" : "bg-muted/50"
+                                )}>
+                                    <AlertCircle className={cn(
+                                        "h-5 w-5",
+                                        stats.pending > 0 ? "text-warning" : "text-muted-foreground"
+                                    )} />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-semibold">{stats.pending}</p>
+                                    <p className="text-xs text-muted-foreground">Pending</p>
+                                </div>
                             </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[280px]">Project Name</TableHead>
-                                        <TableHead>Open Roles</TableHead>
-                                        <TableHead>Applications</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right w-[100px]">Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {founderProjects.map((project, index) => (
-                                        <TableRow
-                                            key={project.id}
-                                            className="animate-fade-in-up"
-                                            style={{ animationDelay: `${index * 30}ms` }}
-                                        >
-                                            <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium text-sm">{project.title}</span>
-                                                    <span className="text-xs text-muted-foreground">{project.sector}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                {project.open_roles.length > 0 ? (
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {project.open_roles.slice(0, 2).map((role, i) => (
-                                                            <Badge key={i} variant="outline" className="text-[10px]">{role}</Badge>
-                                                        ))}
-                                                        {project.open_roles.length > 2 && (
-                                                            <Badge variant="secondary" className="text-[10px]">+{project.open_roles.length - 2}</Badge>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-xs text-muted-foreground">No open roles</span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {project.applications_pending > 0 ? (
-                                                    <div className="flex items-center gap-1.5">
-                                                        <div className="h-2 w-2 rounded-full bg-warning animate-pulse" />
-                                                        <span className="text-sm font-medium">{project.applications_pending} pending</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-sm text-muted-foreground">0 pending</span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {getStatusBadge(project.status)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button variant="ghost" size="sm" asChild>
-                                                    <Link href={`/projects/${project.id}`}>
-                                                        Manage <ArrowUpRight className="ml-1 h-3 w-3" />
-                                                    </Link>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
+                        </div>
+                        <div className="p-4 rounded-lg border border-border/50 bg-card/50">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                    <Users className="h-5 w-5 text-blue-500" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-semibold">{stats.team}</p>
+                                    <p className="text-xs text-muted-foreground">Team</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-4 rounded-lg border border-border/50 bg-card/50">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                    <MessageSquare className="h-5 w-5 text-green-500" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-semibold">{stats.messages}</p>
+                                    <p className="text-xs text-muted-foreground">Messages</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Incoming Applications Table */}
-                    <div className="border rounded-lg overflow-hidden animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-                        <div className="px-4 py-3 bg-muted/20 border-b flex items-center justify-between">
-                            <div>
-                                <h2 className="text-sm font-semibold">Incoming Applications</h2>
-                                <p className="text-xs text-muted-foreground mt-0.5">Review and respond to applicants</p>
-                            </div>
-                            <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
-                                {pendingApplications.length} Pending
-                            </Badge>
-                        </div>
-                        {loading ? (
-                            <div className="p-8 flex items-center justify-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                    <span className="text-sm text-muted-foreground">Loading applications...</span>
-                                </div>
-                            </div>
-                        ) : pendingApplications.length === 0 ? (
-                            <div className="p-8 text-center">
-                                <p className="text-sm text-muted-foreground">No pending applications at the moment.</p>
-                            </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[200px]">Applicant</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead>Project</TableHead>
-                                        <TableHead>Applied</TableHead>
-                                        <TableHead className="text-right w-[160px]">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {pendingApplications.map((application, index) => (
-                                        <TableRow
-                                            key={application.id}
-                                            className="animate-fade-in-up"
-                                            style={{ animationDelay: `${index * 30}ms` }}
-                                        >
-                                            <TableCell>
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={application.applicant_avatar} />
-                                                        <AvatarFallback className="text-[10px]">
-                                                            {application.applicant_name.substring(0, 2).toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="font-medium text-sm">{application.applicant_name}</span>
+                    {/* Two Column Layout */}
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        {/* Main Content */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Pending Applications - Priority Section */}
+                            {pendingApplications.length > 0 && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-lg font-semibold">Pending Applications</h2>
+                                            <Badge variant="warning" className="text-[10px]">
+                                                {pendingApplications.length} to review
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {pendingApplications.map((app) => (
+                                            <div
+                                                key={app.id}
+                                                className="flex items-center gap-4 p-4 rounded-lg border border-warning/20 bg-warning/5"
+                                            >
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={app.applicant_avatar} />
+                                                    <AvatarFallback className="text-xs">
+                                                        {app.applicant_name.substring(0, 2).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium">{app.applicant_name}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {app.role_applied} for {app.project_title}
+                                                    </p>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline" className="text-[10px]">{application.role_applied}</Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="text-sm text-muted-foreground">{application.project_title}</span>
-                                            </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">
-                                                {formatRelativeTime(application.applied_at)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-2">
+                                                <div className="flex items-center gap-2">
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
                                                                 variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleAccept(application.id)}
-                                                                disabled={processingId === application.id}
-                                                                className="h-8 px-2 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                                                                size="icon"
+                                                                onClick={() => handleAccept(app.id)}
+                                                                disabled={processingId === app.id}
+                                                                className="h-9 w-9 text-green-500 hover:text-green-600 hover:bg-green-500/10"
                                                             >
-                                                                {processingId === application.id ? (
+                                                                {processingId === app.id ? (
                                                                     <Loader2 className="h-4 w-4 animate-spin" />
                                                                 ) : (
-                                                                    <CheckCircle2 className="h-4 w-4" />
+                                                                    <CheckCircle2 className="h-5 w-5" />
                                                                 )}
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent>Accept application</TooltipContent>
+                                                        <TooltipContent>Accept</TooltipContent>
                                                     </Tooltip>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
                                                                 variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleReject(application.id)}
-                                                                disabled={processingId === application.id}
-                                                                className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                                size="icon"
+                                                                onClick={() => handleReject(app.id)}
+                                                                disabled={processingId === app.id}
+                                                                className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
                                                             >
-                                                                {processingId === application.id ? (
+                                                                {processingId === app.id ? (
                                                                     <Loader2 className="h-4 w-4 animate-spin" />
                                                                 ) : (
-                                                                    <XCircle className="h-4 w-4" />
+                                                                    <XCircle className="h-5 w-5" />
                                                                 )}
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent>Reject application</TooltipContent>
+                                                        <TooltipContent>Reject</TooltipContent>
                                                     </Tooltip>
-                                                    <Button variant="ghost" size="sm" asChild>
-                                                        <Link href={`/profile/${application.applicant_id}`}>
-                                                            View
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={`/profile/${app.applicant_id}`}>
+                                                            View Profile
                                                         </Link>
                                                     </Button>
                                                 </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
-                    </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* Team Overview */}
-                    <div className="border rounded-lg overflow-hidden animate-fade-in-up" style={{ animationDelay: '150ms' }}>
-                        <div className="px-4 py-3 bg-muted/20 border-b flex items-center justify-between">
-                            <div>
-                                <h2 className="text-sm font-semibold">Team Overview</h2>
-                                <p className="text-xs text-muted-foreground mt-0.5">All team members across your projects</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium">{teamMembers.length} members</span>
+                            {/* Projects */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-semibold">Your Projects</h2>
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <Link href="/projects">View all</Link>
+                                    </Button>
+                                </div>
+                                {loading ? (
+                                    <div className="space-y-2">
+                                        {[1, 2, 3].map(i => (
+                                            <Skeleton key={i} className="h-20 w-full" />
+                                        ))}
+                                    </div>
+                                ) : founderProjects.length === 0 ? (
+                                    <div className="text-center py-12 border border-dashed border-border/50 rounded-lg">
+                                        <p className="text-muted-foreground mb-3">No projects yet</p>
+                                        <Button size="sm" asChild>
+                                            <Link href="/projects/create">Create your first project</Link>
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {founderProjects.map((project) => (
+                                            <Link key={project.id} href={`/projects/${project.id}`}>
+                                                <div className="p-4 rounded-lg border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-card transition-all group">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex-1 min-w-0 space-y-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className="font-medium group-hover:text-primary transition-colors truncate">
+                                                                    {project.title}
+                                                                </h3>
+                                                                <ProjectPhaseBadge phase={project.phase} showIcon={false} />
+                                                                <Badge
+                                                                    variant={project.status === 'open' ? 'active' : 'secondary'}
+                                                                    className="text-[10px]"
+                                                                >
+                                                                    {project.status}
+                                                                </Badge>
+                                                            </div>
+                                                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                                                <span className="flex items-center gap-1">
+                                                                    <Users className="h-3 w-3" />
+                                                                    {project.member_count}/{project.team_size_needed} members
+                                                                </span>
+                                                                {project.applications_pending > 0 && (
+                                                                    <span className="text-warning flex items-center gap-1">
+                                                                        <AlertCircle className="h-3 w-3" />
+                                                                        {project.applications_pending} pending
+                                                                    </span>
+                                                                )}
+                                                                <span>{project.sector}</span>
+                                                            </div>
+                                                        </div>
+                                                        <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        {loading ? (
-                            <div className="p-8 flex items-center justify-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                    <span className="text-sm text-muted-foreground">Loading team...</span>
+
+                        {/* Sidebar */}
+                        <div className="space-y-6">
+                            {/* Messages */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-semibold">Messages</h3>
+                                    {unreadMessages.length > 0 && (
+                                        <Badge variant="default" className="text-[10px]">
+                                            {unreadMessages.length} new
+                                        </Badge>
+                                    )}
                                 </div>
-                            </div>
-                        ) : teamMembers.length === 0 ? (
-                            <div className="p-8 text-center">
-                                <p className="text-sm text-muted-foreground">No team members yet.</p>
-                            </div>
-                        ) : (
-                            <div className="p-4">
-                                <div className="flex flex-wrap gap-3">
-                                    {teamMembers.map((member, index) => (
-                                        <div
-                                            key={member.id}
-                                            className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg border border-transparent hover:border-border transition-colors animate-fade-in-up"
-                                            style={{ animationDelay: `${index * 30}ms` }}
-                                        >
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage src={member.avatar_url} />
-                                                <AvatarFallback className="text-xs">
-                                                    {member.name.substring(0, 2).toUpperCase()}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-medium">{member.name}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-muted-foreground">{member.role}</span>
-                                                    {getRoleBadge(member.role_badge)}
+                                <div className="space-y-2">
+                                    {directMessages.slice(0, 4).map((chat) => (
+                                        <Link key={chat.id} href={`/chat/${chat.id}`}>
+                                            <div className={cn(
+                                                "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                                                chat.unread_count > 0
+                                                    ? "border-primary/30 bg-primary/5"
+                                                    : "border-border/50 bg-card/30 hover:bg-card/50"
+                                            )}>
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarFallback className="text-xs bg-muted">
+                                                        {chat.name.substring(0, 2).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate">{chat.name}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        {chat.last_message}
+                                                    </p>
                                                 </div>
+                                                {chat.unread_count > 0 && (
+                                                    <div className="h-2 w-2 rounded-full bg-primary" />
+                                                )}
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>
-                        )}
+
+                            {/* Team */}
+                            <div className="space-y-3">
+                                <h3 className="font-semibold">Team Members</h3>
+                                <div className="space-y-2">
+                                    {teamMembers.slice(0, 5).map((member) => (
+                                        <Link key={member.id} href={`/profile/${member.user_id}`}>
+                                            <div className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/50 transition-all">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={member.avatar_url} />
+                                                    <AvatarFallback className="text-xs bg-muted">
+                                                        {member.name.substring(0, 2).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate">{member.name}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        {member.role}
+                                                    </p>
+                                                </div>
+                                                <Badge
+                                                    variant={member.role_badge === 'founder' ? 'premium' : 'secondary'}
+                                                    className="text-[9px]"
+                                                >
+                                                    {member.role_badge}
+                                                </Badge>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </DashboardLayout>

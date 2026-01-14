@@ -14,7 +14,9 @@ import {
     CheckCheck
 } from 'lucide-react';
 import ChatSidebar from '@/components/chat/ChatSidebar';
-import { MOCK_MESSAGES, MOCK_ROOMS, MOCK_PROJECTS, formatRelativeTime } from '@/data/mock-data';
+import { MOCK_MESSAGES, MOCK_ROOMS, MOCK_PROJECTS, MOCK_ANNOUNCEMENTS, formatRelativeTime } from '@/data/mock-data';
+import { AnnouncementList } from '@/components/AnnouncementCard';
+import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -261,6 +263,19 @@ export default function ChatRoomPage() {
                             )}
                         </div>
                     </header>
+
+                    {/* Pinned Announcements Banner */}
+                    {room?.project_id && MOCK_ANNOUNCEMENTS.filter(a => a.project_id === room.project_id && a.is_pinned).length > 0 && (
+                        <div className="px-6 py-3 border-b bg-primary/5">
+                            <AnnouncementList
+                                announcements={MOCK_ANNOUNCEMENTS}
+                                projectId={room.project_id}
+                                pinnedOnly={true}
+                                maxItems={1}
+                                compact={true}
+                            />
+                        </div>
+                    )}
 
                     {/* Messages Area */}
                     <div className="flex-1 overflow-y-auto">

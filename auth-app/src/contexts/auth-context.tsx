@@ -225,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email_verified: true,
       phone_verified: true,
       two_fa_enabled: false,
-      profile_completed: true,
+      profile_completed: false,  // Allow incomplete profiles
     };
 
     setUser(dummyUser);
@@ -267,7 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email_verified: true,
       phone_verified: true,
       two_fa_enabled: false,
-      profile_completed: true,
+      profile_completed: false,  // Allow incomplete profiles
     };
 
     setUser(dummyUser);

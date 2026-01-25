@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/Toast';
 import { MOCK_PROJECTS, MOCK_ANNOUNCEMENTS, MOCK_ACTIVITY_TIMELINE, ProjectPhase } from '@/data/mock-data';
-import { DashboardLayout } from '@/components/DashboardLayout';
+import { MainLayout } from '@/components/MainLayout'; // TODO: Removed legacy sidebar navigation
 import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
 import { ActivityTimeline } from '@/components/ActivityTimeline';
 import { AnnouncementList } from '@/components/AnnouncementCard';
@@ -225,7 +225,7 @@ export default function ProjectDetailPage() {
     if (!project) return null;
 
     return (
-        <DashboardLayout>
+        <MainLayout>
             <div className="space-y-8 max-w-6xl">
                 {/* Navigation & Actions */}
                 <div className="flex items-center justify-between">
@@ -473,6 +473,6 @@ export default function ProjectDetailPage() {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+        </MainLayout>
     );
 }

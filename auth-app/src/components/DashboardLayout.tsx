@@ -12,13 +12,14 @@ import {
     X,
     LogOut,
     User,
-    Shield,
-    Bell
+    Shield
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { GlobalSearch } from "@/components/GlobalSearch"
+import { NotificationsDropdown } from "@/components/NotificationsDropdown"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -172,19 +173,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {/* Main Content */}
             <div className="flex flex-1 flex-col md:ml-64">
                 <header className="flex h-16 items-center gap-4 border-b border-border/50 px-6 sticky top-0 z-40 glass">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                {pathname.split('/').filter(Boolean).join(' / ')}
-                            </span>
-                        </div>
+                    {/* Global Search - Center */}
+                    <div className="flex-1 flex justify-center max-w-2xl mx-auto">
+                        <GlobalSearch />
                     </div>
 
+                    {/* Right Actions */}
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
-                            <Bell className="h-4 w-4" />
-                            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        </Button>
+                        <NotificationsDropdown />
 
                         <div className="h-6 w-px bg-border/50" />
 

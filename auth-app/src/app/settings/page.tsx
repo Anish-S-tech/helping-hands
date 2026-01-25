@@ -10,7 +10,7 @@ import {
     ChevronRight, Crown, Check, X, AlertTriangle, Download,
     Archive, KeyRound, Loader2
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+import { MainLayout } from '@/components/MainLayout'; // TODO: Legacy DashboardLayout removed - Amazon-style navigation only
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -158,7 +158,7 @@ export default function SettingsPage() {
 
     if (authLoading) {
         return (
-            <DashboardLayout>
+            <MainLayout>
                 <div className="space-y-6">
                     <Skeleton className="h-8 w-48" />
                     <div className="flex gap-6">
@@ -168,12 +168,12 @@ export default function SettingsPage() {
                     </div>
                     <Skeleton className="h-96 w-full" />
                 </div>
-            </DashboardLayout>
+            </MainLayout>
         );
     }
 
     return (
-        <DashboardLayout>
+        <MainLayout>
             <div className="space-y-6 max-w-5xl">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -802,6 +802,6 @@ export default function SettingsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </DashboardLayout>
+        </MainLayout>
     );
 }

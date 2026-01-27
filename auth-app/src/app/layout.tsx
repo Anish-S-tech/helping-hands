@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
+import { RoleProvider } from "@/contexts/role-context";
 import { ToastContainer } from "@/components/Toast";
 import CommandPalette from "@/components/CommandPalette";
 
@@ -42,11 +43,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-            <CommandPalette />
-            <ToastContainer />
-          </AuthProvider>
+          <RoleProvider>
+            <AuthProvider>
+              {children}
+              <CommandPalette />
+              <ToastContainer />
+            </AuthProvider>
+          </RoleProvider>
         </ThemeProvider>
       </body>
     </html>

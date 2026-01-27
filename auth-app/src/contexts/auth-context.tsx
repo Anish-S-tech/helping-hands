@@ -144,20 +144,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Check for dummy session in localStorage
-        const dummySession = typeof window !== 'undefined' ? localStorage.getItem('dummy_auth') : null;
+        // TODO: For production, implement real authentication
+        // IMPORTANT: Users should start logged out by default
+        // NO auto-login or session restoration on page load
 
-        if (dummySession) {
-          const sessionData = JSON.parse(dummySession);
-          setUser(sessionData.user);
-          setProfile(sessionData.profile);
-          if (sessionData.founderDetails) {
-            setFounderDetails(sessionData.founderDetails);
-          }
-          setLoading(false);
-          return;
-        }
-
+        // Check for real Supabase session (not dummy)
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
@@ -176,11 +167,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Skip if dummy auth is active
-        if (typeof window !== 'undefined' && localStorage.getItem('dummy_auth')) {
-          return;
-        }
-
         setSession(session);
         setUser(session?.user ?? null);
 

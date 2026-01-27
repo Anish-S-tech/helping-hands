@@ -118,7 +118,7 @@ function ExploreNavbar({
   const initials = profile?.name?.[0]?.toUpperCase() ?? profile?.email?.[0]?.toUpperCase() ?? 'U';
 
   const handleSignIn = () => {
-    router.push('/login');
+    router.push('/auth');
   };
 
   const handleSettings = () => {
@@ -774,7 +774,7 @@ function ExplorePageContent() {
 
   const handleViewDetails = (projectId: string) => {
     if (!profile) {
-      router.push(`/login/user?redirect=/projects/${projectId}`);
+      router.push(`/auth?redirect=/projects/${projectId}`);
       return;
     }
     router.push(`/projects/${projectId}`);

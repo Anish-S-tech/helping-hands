@@ -1,474 +1,554 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import {
     ArrowLeft,
     Users,
     Clock,
-    CheckCircle,
-    XCircle,
     MessageSquare,
+    Briefcase,
+    Calendar,
+    CheckCircle2,
+    Send,
     Loader2,
-    Shield,
+    Star,
+    TrendingUp,
+    Target,
+    Zap,
     ChevronRight,
-    BarChart3,
-    Code,
-    Package,
-    MoreHorizontal,
-    ExternalLink
+    ExternalLink,
+    Heart,
+    Share2,
+    Bookmark,
+    Award,
+    Layers
 } from 'lucide-react';
-import { toast } from '@/components/Toast';
-import { MOCK_PROJECTS, MOCK_ANNOUNCEMENTS, MOCK_ACTIVITY_TIMELINE, ProjectPhase } from '@/data/mock-data';
-import { MainLayout } from '@/components/MainLayout'; // TODO: Removed legacy sidebar navigation
+import { MOCK_PROJECTS, formatRelativeTime, type Project } from '@/data/mock-data';
+import { MainLayout } from '@/components/MainLayout';
 import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
-import { ActivityTimeline } from '@/components/ActivityTimeline';
-import { AnnouncementList } from '@/components/AnnouncementCard';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
-interface ProjectMember {
-    id: string;
-    status: 'pending' | 'accepted' | 'rejected';
-    role: string;
-    joined_at: string;
-    user: {
-        id: string;
-        name: string;
-        bio: string;
-        role_type: string;
-        avatar_url?: string;
-    };
+// Image mapping for projects
+const PROJECT_IMAGE_MAP: Record<string, string> = {
+    p1: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p2: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p3: 'https://images.pexels.com/photos/3730760/pexels-photo-3730760.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p4: 'https://images.pexels.com/photos/8370755/pexels-photo-8370755.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p5: 'https://images.pexels.com/photos/3861964/pexels-photo-3861964.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p6: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p7: 'https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p8: 'https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p9: 'https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p10: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p11: 'https://images.pexels.com/photos/4974915/pexels-photo-4974915.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    p12: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1200',
+};
+
+function getProjectImage(project: Project): string {
+    if (PROJECT_IMAGE_MAP[project.id]) return PROJECT_IMAGE_MAP[project.id];
+    return 'https://images.pexels.com/photos/3184632/pexels-photo-3184632.jpeg?auto=compress&cs=tinysrgb&w=1200';
 }
 
-interface Project {
-    id: string;
-    title: string;
-    description: string;
-    vision: string;
-    sector: string;
-    skills_needed: string[];
-    team_size_needed: number;
-    status: 'open' | 'in_progress' | 'completed';
-    created_at: string;
-    founder: {
-        id: string;
-        user_id: string;
-        name: string;
-        bio: string;
-        avatar_url?: string;
-    };
-    project_members: ProjectMember[];
-    chat_rooms: { id: string }[];
+// Stat Card Component
+function StatCard({ icon: Icon, label, value, color }: {
+    icon: React.ElementType;
+    label: string;
+    value: string | number;
+    color: string;
+}) {
+    return (
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-border/50 bg-card/50">
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", color)}>
+                <Icon className="h-5 w-5" />
+            </div>
+            <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-lg font-bold">{value}</p>
+            </div>
+        </div>
+    );
 }
 
 export default function ProjectDetailPage() {
-    const params = useParams();
+    const { id } = useParams();
     const router = useRouter();
-    const { profile, supabase, loading: authLoading } = useAuth();
+    const { profile, loading: authLoading } = useAuth();
 
-    const [project, setProject] = useState<Project | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [joining, setJoining] = useState(false);
-    const [updating, setUpdating] = useState<string | null>(null);
+    const [isApplying, setIsApplying] = useState(false);
+    const [selectedRole, setSelectedRole] = useState('');
+    const [coverLetter, setCoverLetter] = useState('');
+    const [applicationSent, setApplicationSent] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
 
-    const isFounder = project?.founder?.user_id === profile?.user_id;
-    const myMembership = project?.project_members?.find(m => m.user?.id === profile?.id);
-    const acceptedMembers = project?.project_members?.filter(m => m.status === 'accepted') || [];
-    const pendingMembers = project?.project_members?.filter(m => m.status === 'pending') || [];
+    // Find the project
+    const project = MOCK_PROJECTS.find(p => p.id === id);
 
-    useEffect(() => {
-        if (!authLoading && !profile) {
-            router.push('/login/user');
-            return;
-        }
-        if (params.id) {
-            fetchProject();
-        }
-    }, [profile, authLoading, params.id, router]);
+    const handleApply = async () => {
+        if (!selectedRole || !coverLetter.trim()) return;
 
-    const fetchProject = async () => {
-        setLoading(true);
-        try {
-            const mockProject = MOCK_PROJECTS.find(p => p.id === params.id);
-            if (mockProject) {
-                setProject({
-                    ...mockProject,
-                    founder: {
-                        id: mockProject.founder.id,
-                        user_id: mockProject.founder.id,
-                        name: mockProject.founder.name,
-                        bio: 'Enterprise Founder visioning the next-scaled architecture.'
-                    },
-                    project_members: [
-                        {
-                            id: 'm1',
-                            status: 'accepted',
-                            role: 'Core Contributor',
-                            joined_at: '2025-12-25T10:00:00Z',
-                            user: { id: 'u1', name: 'Alex Rivera', bio: 'Full-stack lead.', role_type: 'builder' }
-                        },
-                        {
-                            id: 'm2',
-                            status: 'pending',
-                            role: 'Technical Analyst',
-                            joined_at: '2026-01-01T14:30:00Z',
-                            user: { id: 'u2', name: 'Sarah Chen', bio: 'AI Specialist.', role_type: 'builder' }
-                        }
-                    ],
-                    chat_rooms: [{ id: 'r1' }]
-                } as unknown as Project);
-                setLoading(false);
-                return;
-            }
-
-            const { data, error } = await supabase
-                .from('projects')
-                .select(`
-                    *,
-                    founder:profiles!projects_founder_id_fkey (
-                        id,
-                        user_id,
-                        name,
-                        bio
-                    ),
-                    project_members (
-                        id,
-                        status,
-                        role,
-                        joined_at,
-                        user:profiles!project_members_user_id_fkey (
-                            id,
-                            name,
-                            bio,
-                            role_type
-                        )
-                    ),
-                    chat_rooms (
-                        id
-                    )
-                `)
-                .eq('id', params.id)
-                .single();
-
-            if (data) {
-                setProject(data as unknown as Project);
-            }
-        } catch (error) {
-            console.error('Error fetching project:', error);
-        } finally {
-            setLoading(false);
-        }
+        setIsApplying(true);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsApplying(false);
+        setApplicationSent(true);
+        setTimeout(() => {
+            setDialogOpen(false);
+            setApplicationSent(false);
+            setSelectedRole('');
+            setCoverLetter('');
+        }, 2000);
     };
 
-    const handleJoinRequest = async () => {
-        if (!profile) return;
-        setJoining(true);
-
-        try {
-            const { error } = await supabase
-                .from('project_members')
-                .insert({
-                    project_id: params.id,
-                    user_id: profile.id,
-                    status: 'pending',
-                });
-
-            if (error) throw error;
-            toast.success('Access Request Submitted');
-            await fetchProject();
-        } catch (error: any) {
-            toast.error(error.message || 'Access Request Failed');
-        } finally {
-            setJoining(false);
-        }
-    };
-
-    const handleMemberAction = async (memberId: string, action: 'accepted' | 'rejected') => {
-        setUpdating(memberId);
-
-        try {
-            const { error } = await supabase
-                .from('project_members')
-                .update({ status: action })
-                .eq('id', memberId);
-
-            if (error) throw error;
-            toast.success(`Operational Status: ${action.toUpperCase()}`);
-            await fetchProject();
-        } catch (error: any) {
-            toast.error(error.message || 'Transaction Failed');
-        } finally {
-            setUpdating(null);
-        }
-    };
-
-    if (authLoading || loading) {
+    if (authLoading) {
         return (
-            <div className="flex items-center justify-center h-screen bg-background">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
+            <MainLayout>
+                <div className="max-w-6xl mx-auto space-y-8">
+                    <Skeleton className="h-72 w-full rounded-2xl" />
+                    <div className="grid grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
+                    </div>
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </MainLayout>
         );
     }
 
-    if (!project) return null;
+    if (!project) {
+        return (
+            <MainLayout>
+                <div className="max-w-6xl mx-auto">
+                    <Card className="border-dashed">
+                        <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/50 mb-6">
+                                <Briefcase className="h-10 w-10 text-muted-foreground" />
+                            </div>
+                            <h1 className="text-2xl font-bold mb-3">Project Not Found</h1>
+                            <p className="text-muted-foreground mb-6 max-w-md">
+                                The project you're looking for doesn't exist or has been removed.
+                            </p>
+                            <Button asChild>
+                                <Link href="/">Browse Projects</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            </MainLayout>
+        );
+    }
+
+    const isFounder = profile?.role_type === 'founder';
+    const hasOpenRoles = project.open_roles.length > 0;
+    const imageSrc = getProjectImage(project);
+    const capacityPercent = Math.min(100, ((project.member_count) / project.team_size_needed) * 100);
 
     return (
         <MainLayout>
-            <div className="space-y-8 max-w-6xl">
-                {/* Navigation & Actions */}
-                <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" asChild>
-                        <Link href={isFounder ? '/dashboard/founder' : '/explore'}>
-                            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Directory
-                        </Link>
-                    </Button>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8">
-                            <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Copy Resource Identifier</DropdownMenuItem>
-                                <DropdownMenuItem>Report Anomaly</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </div>
+            <div className="max-w-6xl mx-auto space-y-8">
+                {/* Back Button */}
+                <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                </Button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Left Column - Main Info */}
-                    <div className="lg:col-span-8 space-y-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <Badge variant="secondary" className="px-2 py-0 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
-                                    {project.sector}
-                                </Badge>
-                                <ProjectPhaseBadge phase={(project as any).phase as ProjectPhase || 'active'} />
-                                <div className="h-1 w-1 rounded-full bg-border" />
-                                <span className="text-xs text-muted-foreground font-medium">Node_{project.id.slice(0, 8)}</span>
-                            </div>
-                            <h1 className="text-4xl font-bold tracking-tight mb-4">{project.title}</h1>
-                            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl italic">
-                                "{project.vision || 'Strategic project deployment under standard operational parameters.'}"
-                            </p>
+                {/* Hero Section with Image */}
+                <section className="relative overflow-hidden rounded-2xl border border-border/50">
+                    {/* Hero Image */}
+                    <div className="relative h-64 md:h-80 w-full">
+                        <Image
+                            src={imageSrc}
+                            alt={project.title}
+                            fill
+                            className="object-cover"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+
+                        {/* Floating badges on image */}
+                        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                            <Badge variant="secondary" className="backdrop-blur-md bg-background/80 px-3 py-1">
+                                {project.sector}
+                            </Badge>
+                            <ProjectPhaseBadge phase={project.phase} />
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-8 border-y">
-                            <div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Founder</p>
-                                <p className="text-sm font-semibold">{project.founder.name}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Created</p>
-                                <p className="text-sm font-semibold">{new Date(project.created_at).toLocaleDateString()}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Saturation</p>
-                                <p className="text-sm font-semibold">{acceptedMembers.length + 1} / {project.team_size_needed}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Status</p>
-                                <div className="flex items-center gap-1.5 font-semibold text-sm capitalize">
-                                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                                    {project.status}
+                        {/* Action buttons on image */}
+                        <div className="absolute top-4 right-4 flex gap-2">
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className="h-9 w-9 backdrop-blur-md bg-background/80"
+                                onClick={() => setIsSaved(!isSaved)}
+                            >
+                                <Bookmark className={cn("h-4 w-4", isSaved && "fill-current")} />
+                            </Button>
+                            <Button variant="secondary" size="icon" className="h-9 w-9 backdrop-blur-md bg-background/80">
+                                <Share2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Hero Content */}
+                    <div className="relative p-6 md:p-8 -mt-20 md:-mt-24">
+                        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                            <div className="space-y-3 max-w-2xl">
+                                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                                    {project.title}
+                                </h1>
+                                <p className="text-lg text-muted-foreground leading-relaxed">
+                                    {project.vision}
+                                </p>
+                                <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                                    <span className="flex items-center gap-1.5">
+                                        <Calendar className="h-4 w-4" />
+                                        Created {formatRelativeTime(project.created_at)}
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <Clock className="h-4 w-4" />
+                                        Active {formatRelativeTime(project.last_activity)}
+                                    </span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2">
-                                <Shield className="h-5 w-5 text-primary" /> Operational Objective
-                            </h3>
-                            <div className="bg-card/50 border rounded-lg p-6">
-                                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                            {/* CTA Buttons */}
+                            <div className="flex gap-3 shrink-0">
+                                {project.status === 'open' && !isFounder && hasOpenRoles && (
+                                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button size="lg" className="gap-2 shadow-lg shadow-primary/20">
+                                                <Zap className="h-4 w-4" />
+                                                Apply to Join
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[500px]">
+                                            <DialogHeader>
+                                                <DialogTitle>Apply to {project.title}</DialogTitle>
+                                                <DialogDescription>
+                                                    Select a role and tell the founder why you'd be a great fit.
+                                                </DialogDescription>
+                                            </DialogHeader>
+
+                                            {applicationSent ? (
+                                                <div className="py-8 text-center">
+                                                    <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                                                        <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                                                    </div>
+                                                    <h3 className="text-lg font-semibold mb-2">Application Sent!</h3>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        The founder will review your application and get back to you.
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="space-y-4 py-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="role">Role</Label>
+                                                            <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select a role" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {project.open_roles.map(role => (
+                                                                        <SelectItem key={role} value={role}>
+                                                                            {role}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="cover">Why do you want to join?</Label>
+                                                            <Textarea
+                                                                id="cover"
+                                                                placeholder="Tell the founder about your relevant experience and why you're interested..."
+                                                                value={coverLetter}
+                                                                onChange={(e) => setCoverLetter(e.target.value)}
+                                                                rows={5}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <DialogFooter>
+                                                        <Button
+                                                            onClick={handleApply}
+                                                            disabled={!selectedRole || !coverLetter.trim() || isApplying}
+                                                            className="gap-2"
+                                                        >
+                                                            {isApplying ? (
+                                                                <>
+                                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                                    Sending...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Send className="h-4 w-4" />
+                                                                    Submit Application
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </>
+                                            )}
+                                        </DialogContent>
+                                    </Dialog>
+                                )}
+
+                                <Button variant="outline" size="lg" className="gap-2" asChild>
+                                    <Link href={`/chat/project-${project.id}`}>
+                                        <MessageSquare className="h-4 w-4" />
+                                        Project Chat
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Stats Grid */}
+                <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatCard
+                        icon={Users}
+                        label="Team Members"
+                        value={`${project.member_count}/${project.team_size_needed}`}
+                        color="bg-primary/10 text-primary"
+                    />
+                    <StatCard
+                        icon={Briefcase}
+                        label="Open Roles"
+                        value={project.open_roles.length}
+                        color="bg-violet-500/10 text-violet-500"
+                    />
+                    <StatCard
+                        icon={Target}
+                        label="Applications"
+                        value={project.applications_pending}
+                        color="bg-emerald-500/10 text-emerald-500"
+                    />
+                    <StatCard
+                        icon={TrendingUp}
+                        label="Commitment"
+                        value={project.commitment.charAt(0).toUpperCase() + project.commitment.slice(1)}
+                        color="bg-amber-500/10 text-amber-500"
+                    />
+                </section>
+
+                {/* Main Content Grid */}
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Left Column - Main Content */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* About */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Layers className="h-5 w-5 text-primary" />
+                                    About this Project
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground leading-relaxed">
                                     {project.description}
                                 </p>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2">
-                                <Code className="h-5 w-5 text-primary" /> Technical Requirements
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                                {project.skills_needed?.map((skill, i) => (
-                                    <Badge key={i} variant="secondary" className="px-3 py-1 font-medium bg-muted/50 border-transparent">
-                                        {skill}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Team Capacity */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-violet-500" />
+                                    Team Capacity
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Current team size</span>
+                                    <span className="font-semibold">{project.member_count} of {project.team_size_needed} members</span>
+                                </div>
+                                <Progress value={capacityPercent} className="h-3" />
+                                <p className="text-xs text-muted-foreground">
+                                    {project.team_size_needed - project.member_count} spots remaining for new contributors
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                        {/* Founder Specific - Applications */}
-                        {isFounder && pendingMembers.length > 0 && (
-                            <div className="space-y-4 pt-4">
-                                <h3 className="text-lg font-bold text-yellow-500 flex items-center gap-2">
-                                    <Clock className="h-5 w-5" /> Pending Access Requests
-                                </h3>
-                                <div className="grid gap-3">
-                                    {pendingMembers.map((member) => (
-                                        <Card key={member.id} className="bg-yellow-500/5 border-yellow-500/20">
-                                            <CardContent className="p-4 flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarFallback>{member.user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="text-sm font-bold">{member.user.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{member.user.role_type} • {member.user.bio}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                                        onClick={() => handleMemberAction(member.id, 'rejected')}
-                                                        disabled={updating === member.id}
-                                                    >
-                                                        <XCircle className="h-5 w-5" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-green-500 hover:bg-green-500/10"
-                                                        onClick={() => handleMemberAction(member.id, 'accepted')}
-                                                        disabled={updating === member.id}
-                                                    >
-                                                        <CheckCircle className="h-5 w-5" />
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                        {/* Skills Needed */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Award className="h-5 w-5 text-emerald-500" />
+                                    Skills Needed
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-wrap gap-2">
+                                    {project.skills_needed.map(skill => (
+                                        <Badge
+                                            key={skill}
+                                            variant="secondary"
+                                            className="px-4 py-2 text-sm bg-secondary/50"
+                                        >
+                                            {skill}
+                                        </Badge>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                            </CardContent>
+                        </Card>
 
-                        <div className="space-y-4 pt-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2">
-                                <Users className="h-5 w-5 text-primary" /> Active Personnel
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Card className="border-primary/20 bg-primary/5">
-                                    <CardContent className="p-4 flex items-center gap-3">
-                                        <Shield className="h-5 w-5 text-primary opacity-50" />
-                                        <div>
-                                            <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Mission Lead</p>
-                                            <p className="text-sm font-bold">{project.founder.name}</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                {acceptedMembers.map((member) => (
-                                    <Card key={member.id}>
-                                        <CardContent className="p-4 flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback className="text-[10px]">{member.user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{member.role || member.user.role_type || 'Operator'}</p>
-                                                <p className="text-sm font-bold">{member.user.name}</p>
+                        {/* Open Roles */}
+                        {hasOpenRoles && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Briefcase className="h-5 w-5 text-amber-500" />
+                                        Open Roles
+                                        <Badge variant="secondary" className="ml-2">{project.open_roles.length} available</Badge>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid sm:grid-cols-2 gap-3">
+                                        {project.open_roles.map(role => (
+                                            <div
+                                                key={role}
+                                                className="group p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/40 hover:bg-primary/5 transition-all flex items-center justify-between"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                                        <Briefcase className="h-5 w-5 text-primary" />
+                                                    </div>
+                                                    <span className="font-medium">{role}</span>
+                                                </div>
+                                                {!isFounder && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="gap-1 text-primary"
+                                                        onClick={() => {
+                                                            setSelectedRole(role);
+                                                            setDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        Apply <ChevronRight className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Announcements Section */}
-                        {MOCK_ANNOUNCEMENTS.filter(a => a.project_id === params.id).length > 0 && (
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-primary" /> Team Announcements
-                                </h3>
-                                <AnnouncementList
-                                    announcements={MOCK_ANNOUNCEMENTS}
-                                    projectId={params.id as string}
-                                    maxItems={3}
-                                />
-                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
                         )}
-
-                        {/* Activity Timeline Section */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2">
-                                <Clock className="h-5 w-5 text-primary" /> Activity Timeline
-                            </h3>
-                            <div className="bg-card/50 border rounded-lg p-6">
-                                <ActivityTimeline
-                                    activities={MOCK_ACTIVITY_TIMELINE.filter(a => a.project_id === params.id)}
-                                    maxItems={8}
-                                />
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Right Column - Controls */}
-                    <div className="lg:col-span-4">
-                        <Card className="sticky top-8 shadow-xl border-t-4 border-t-primary">
+                    {/* Right Column - Sidebar */}
+                    <div className="space-y-6">
+                        {/* Founder Card */}
+                        <Card>
                             <CardHeader>
-                                <CardTitle className="text-base font-bold uppercase tracking-wider">Mission Status</CardTitle>
+                                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                                    Project Founder
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                                        <span className="text-muted-foreground">Capacity</span>
-                                        <span className="text-primary">{Math.round(((acceptedMembers.length + 1) / project.team_size_needed) * 100)}%</span>
+                            <CardContent>
+                                <Link href={`/profile/${project.founder.id}`} className="block group">
+                                    <div className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/40 transition-all">
+                                        <Avatar className="h-14 w-14 ring-2 ring-background">
+                                            <AvatarImage src={`https://i.pravatar.cc/150?u=${project.founder.id}`} />
+                                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-violet-500/20 font-semibold">
+                                                {project.founder.name.substring(0, 2).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <p className="font-semibold group-hover:text-primary transition-colors">{project.founder.name}</p>
+                                            <p className="text-sm text-muted-foreground">Founder & Creator</p>
+                                        </div>
+                                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
-                                    <Progress value={((acceptedMembers.length + 1) / project.team_size_needed) * 100} className="h-2" />
-                                    <p className="text-[10px] text-muted-foreground text-center pt-1 uppercase font-bold tracking-widest">
-                                        {acceptedMembers.length + 1} of {project.team_size_needed} nodes filled
-                                    </p>
-                                </div>
+                                </Link>
+                            </CardContent>
+                        </Card>
 
-                                <div className="pt-4 space-y-3">
-                                    {(isFounder || myMembership?.status === 'accepted') ? (
-                                        <Button className="w-full h-12 font-bold uppercase tracking-widest" asChild>
-                                            <Link href={`/chat/${project.chat_rooms?.[0]?.id || 'hub'}`}>
-                                                <MessageSquare className="mr-2 h-4 w-4" /> Open Command Hub
-                                            </Link>
-                                        </Button>
-                                    ) : myMembership?.status === 'pending' ? (
-                                        <Button disabled className="w-full h-12 font-bold uppercase tracking-widest opacity-80">
-                                            <Clock className="mr-2 h-4 w-4 animate-pulse" /> Review in Progress
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            className="w-full h-12 font-bold uppercase tracking-widest"
-                                            onClick={handleJoinRequest}
-                                            disabled={joining || project.status !== 'open'}
-                                        >
-                                            {joining ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Request Mission Access"}
-                                            <ChevronRight className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    )}
+                        {/* Quick Info */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                                    Quick Info
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Status</span>
+                                    <Badge
+                                        variant={project.status === 'open' ? 'active' : project.status === 'in-progress' ? 'warning' : 'outline'}
+                                    >
+                                        {project.status === 'open' ? 'Accepting contributors' : project.status === 'in-progress' ? 'In active build' : 'Closed'}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Phase</span>
+                                    <ProjectPhaseBadge phase={project.phase} />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Sector</span>
+                                    <Badge variant="outline">{project.sector}</Badge>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Commitment</span>
+                                    <Badge variant={project.commitment === 'high' ? 'destructive' : project.commitment === 'medium' ? 'warning' : 'secondary'}>
+                                        {project.commitment}
+                                    </Badge>
                                 </div>
                             </CardContent>
-                            <CardFooter className="bg-muted/30 border-t py-4 justify-center">
-                                <div className="flex flex-col items-center gap-1 opacity-50 grayscale">
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-center">
-                                        Authorization: Verified<br />
-                                        Protocol: Secure-TLS
+                        </Card>
+
+                        {/* Status Banner */}
+                        {project.status !== 'open' && (
+                            <Card className="border-amber-500/20 bg-amber-500/5">
+                                <CardContent className="flex items-center gap-3 p-4">
+                                    <Clock className="h-5 w-5 text-amber-500" />
+                                    <p className="text-sm">
+                                        This project is <span className="font-medium">{project.status}</span> and not accepting new applications.
                                     </p>
-                                </div>
-                            </CardFooter>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Share CTA */}
+                        <Card className="bg-gradient-to-br from-primary/5 to-violet-500/5 border-primary/20">
+                            <CardContent className="p-5 text-center space-y-3">
+                                <Heart className="h-8 w-8 text-primary mx-auto" />
+                                <p className="text-sm font-medium">Know someone who'd be a great fit?</p>
+                                <Button variant="outline" className="gap-2 w-full">
+                                    <Share2 className="h-4 w-4" />
+                                    Share this Project
+                                </Button>
+                            </CardContent>
                         </Card>
                     </div>
                 </div>

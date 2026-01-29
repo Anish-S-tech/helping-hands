@@ -19,8 +19,11 @@ import {
   Clock,
   Package,
   Shield,
+  Layers,
+  TrendingUp,
+  Star,
 } from 'lucide-react';
-import { MOCK_PROJECTS, type Project } from '@/data/mock-data';
+import { MOCK_PROJECTS, type Project, formatRelativeTime } from '@/data/mock-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -46,6 +49,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { DashboardCarousel } from '@/components/DashboardCarousel';
+import { MainLayout } from '@/components/MainLayout';
 
 type StatusFilter = 'open' | 'in-progress' | 'closed';
 type CommitmentFilter = 'low' | 'medium' | 'high';
@@ -95,6 +100,102 @@ function getProjectImage(project: Project): string {
   return 'https://images.pexels.com/photos/3184632/pexels-photo-3184632.jpeg?auto=compress&cs=tinysrgb&w=800';
 }
 
+// Home-page style Project Card with images (for trending/categories tabs)
+function ProjectHeroCard({ project, onView }: { project: Project; onView: () => void }) {
+  const imageSrc = getProjectImage(project);
+
+  return (
+    <Card
+      className="group relative flex w-72 flex-shrink-0 cursor-pointer flex-col overflow-hidden rounded-xl border border-border/60 bg-card/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+      onClick={onView}
+    >
+      <div className="relative h-36 w-full overflow-hidden">
+        <Image
+          src={imageSrc}
+          alt={project.title}
+          fill
+          sizes="(min-width: 1280px) 288px, (min-width: 768px) 33vw, 50vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+        <div className="absolute left-3 top-3 flex flex-col gap-1">
+          <Badge variant="secondary" className="w-max text-[10px] font-semibold backdrop-blur-sm">
+            {project.sector}
+          </Badge>
+          <Badge
+            variant={project.status === 'open' ? 'active' : project.status === 'in-progress' ? 'warning' : 'outline'}
+            className="w-max text-[10px] font-semibold backdrop-blur-sm"
+          >
+            {project.status === 'open' ? 'Accepting contributors' : project.status === 'in-progress' ? 'In active build' : 'Closed'}
+          </Badge>
+        </div>
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[11px] text-white/90">
+          <Layers className="h-3.5 w-3.5" />
+          <span className="truncate font-medium drop-shadow-sm">{project.phase.toUpperCase()}</span>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div className="space-y-1">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-1 text-sm font-semibold tracking-tight group-hover:text-primary">
+              {project.title}
+            </h3>
+            <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+              {formatRelativeTime(project.last_activity)}
+            </span>
+          </div>
+          <p className="line-clamp-2 text-[12px] text-muted-foreground/90">
+            {project.description}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {project.skills_needed.slice(0, 3).map((skill) => (
+            <Badge
+              key={skill}
+              variant="secondary"
+              className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-secondary/40 border-0"
+            >
+              {skill}
+            </Badge>
+          ))}
+          {project.skills_needed.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">
+              +{project.skills_needed.length - 3} more
+            </span>
+          )}
+        </div>
+
+        <div className="mt-auto flex items-center justify-between border-t border-dashed border-border/60 pt-3 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5" />
+            <span>
+              {project.member_count}/{project.team_size_needed} on team
+            </span>
+          </div>
+          <span className="truncate">Founder: {project.founder.name}</span>
+        </div>
+      </div>
+
+      {/* Hover CTA overlay */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-background/95 via-background/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="mb-4 flex flex-col items-center gap-2 px-3 text-center">
+          <p className="text-xs font-medium text-foreground">
+            View project details and request to join as a Builder or Founder.
+          </p>
+          <Button
+            size="sm"
+            className="pointer-events-auto h-8 rounded-full px-4 text-[11px] font-semibold shadow-sm bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            View Project
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // --- NAVBAR ---
 
 interface ExploreNavbarProps {
@@ -118,7 +219,7 @@ function ExploreNavbar({
   const initials = profile?.name?.[0]?.toUpperCase() ?? profile?.email?.[0]?.toUpperCase() ?? 'U';
 
   const handleSignIn = () => {
-    router.push('/auth');
+    router.push('/login');
   };
 
   const handleSettings = () => {
@@ -666,12 +767,185 @@ function writeFilterStateToSearchParams(
   return params.toString();
 }
 
+// --- TRENDING TAB CONTENT (matches home page UI) ---
+interface TabContentProps {
+  onViewProject: (projectId: string) => void;
+}
+
+function TrendingTabContent({ onViewProject }: TabContentProps) {
+  const trending = useMemo(
+    () =>
+      [...MOCK_PROJECTS]
+        .sort((a, b) => b.applications_pending - a.applications_pending)
+        .slice(0, 8),
+    []
+  );
+  const recent = useMemo(
+    () =>
+      [...MOCK_PROJECTS]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 8),
+    []
+  );
+
+  return (
+    <MainLayout>
+      <div className="space-y-10 pb-2">
+        {/* Trending Projects Section */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              <div>
+                <h2 className="text-sm font-semibold tracking-tight md:text-base">
+                  Trending Projects
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Projects with the most join requests and active conversations.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DashboardCarousel>
+            {trending.map((project) => (
+              <ProjectHeroCard
+                key={project.id}
+                project={project}
+                onView={() => onViewProject(project.id)}
+              />
+            ))}
+          </DashboardCarousel>
+        </section>
+
+        {/* Recently Added Section */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-sky-500" />
+              <div>
+                <h2 className="text-sm font-semibold tracking-tight md:text-base">
+                  Recently Added
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Fresh projects that just landed on Helping Hands.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DashboardCarousel>
+            {recent.map((project) => (
+              <ProjectHeroCard
+                key={project.id}
+                project={project}
+                onView={() => onViewProject(project.id)}
+              />
+            ))}
+          </DashboardCarousel>
+        </section>
+
+        {/* Hot & Rising */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-amber-500" />
+              <div>
+                <h2 className="text-sm font-semibold tracking-tight md:text-base">
+                  Hot & Rising
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Startups gaining momentum this week.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DashboardCarousel>
+            {MOCK_PROJECTS.slice(4, 12).map((project) => (
+              <ProjectHeroCard
+                key={project.id}
+                project={project}
+                onView={() => onViewProject(project.id)}
+              />
+            ))}
+          </DashboardCarousel>
+        </section>
+      </div>
+    </MainLayout>
+  );
+}
+
+// --- CATEGORIES TAB CONTENT (matches home page UI) ---
+function CategoriesTabContent({ onViewProject }: TabContentProps) {
+  const byDomainMap = useMemo(
+    () =>
+      MOCK_PROJECTS.reduce<Record<string, Project[]>>((acc, project) => {
+        const key = project.sector;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(project);
+        return acc;
+      }, {}),
+    []
+  );
+
+  return (
+    <MainLayout>
+      <div className="space-y-10 pb-2">
+        {/* Header */}
+        <section className="grid gap-6 rounded-2xl border border-border/60 bg-gradient-to-br from-background via-background to-background/80 p-6 md:p-8">
+          <div className="space-y-4">
+            <Badge variant="outline" className="mb-1 w-max text-[10px] font-semibold uppercase tracking-[0.18em]">
+              Browse by Category
+            </Badge>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+              Projects by Domain
+            </h1>
+            <p className="max-w-xl text-sm text-muted-foreground md:text-base">
+              Find startups in your area of expertise. Browse by sector to discover collaboration opportunities.
+            </p>
+          </div>
+        </section>
+
+        {/* Domain Sections */}
+        {Object.entries(byDomainMap).map(([domain, projects]) => (
+          <section key={domain} className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-violet-500" />
+                <div>
+                  <h2 className="text-sm font-semibold tracking-tight md:text-base">
+                    {domain}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    {projects.length} active project{projects.length > 1 ? 's' : ''} in this category
+                  </p>
+                </div>
+              </div>
+            </div>
+            <DashboardCarousel>
+              {projects.map((project) => (
+                <ProjectHeroCard
+                  key={project.id}
+                  project={project}
+                  onView={() => onViewProject(project.id)}
+                />
+              ))}
+            </DashboardCarousel>
+          </section>
+        ))}
+      </div>
+    </MainLayout>
+  );
+}
+
 function ExplorePageContent() {
   const { profile } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Check for tab parameter to show home-page-style content
+  const activeTab = searchParams.get('tab');
+
+  // All hooks must be called before any conditional returns
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') ?? '');
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
@@ -720,6 +994,9 @@ function ExplorePageContent() {
 
   // Keep URL in sync whenever filters or debounced search change
   useEffect(() => {
+    // Don't update URL if we're on a special tab
+    if (activeTab === 'trending' || activeTab === 'categories') return;
+
     const queryString = writeFilterStateToSearchParams(
       new URLSearchParams(searchParams.toString()),
       filters,
@@ -774,11 +1051,20 @@ function ExplorePageContent() {
 
   const handleViewDetails = (projectId: string) => {
     if (!profile) {
-      router.push(`/auth?redirect=/projects/${projectId}`);
+      router.push(`/login/user?redirect=/projects/${projectId}`);
       return;
     }
     router.push(`/projects/${projectId}`);
   };
+
+  // Render home-page-style UI for trending/categories tabs (after all hooks)
+  if (activeTab === 'trending') {
+    return <TrendingTabContent onViewProject={handleViewDetails} />;
+  }
+
+  if (activeTab === 'categories') {
+    return <CategoriesTabContent onViewProject={handleViewDetails} />;
+  }
 
   const handleClearFilters = () => {
     setFilters({

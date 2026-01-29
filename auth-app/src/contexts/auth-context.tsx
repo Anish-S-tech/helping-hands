@@ -144,11 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // TODO: For production, implement real authentication
-        // IMPORTANT: Users should start logged out by default
-        // NO auto-login or session restoration on page load
-
-        // Check for real Supabase session (not dummy)
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
@@ -167,6 +162,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Skip if dummy auth is active
+        if (typeof window !== 'undefined' && localStorage.getItem('dummy_auth')) {
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -217,11 +217,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(dummyUser);
     setProfile(dummyProfile);
 
-    // Save to localStorage for persistence
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('dummy_auth', JSON.stringify({ user: dummyUser, profile: dummyProfile }));
-    }
-
     return { error: null };
   };
 
@@ -259,11 +254,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(dummyUser);
     setProfile(dummyProfile);
 
-    // Save to localStorage for persistence
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('dummy_auth', JSON.stringify({ user: dummyUser, profile: dummyProfile }));
-    }
-
     return { error: null };
   };
 
@@ -291,9 +281,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sign out
   const signOut = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('dummy_auth');
-    }
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);

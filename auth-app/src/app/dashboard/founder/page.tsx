@@ -80,12 +80,8 @@ export default function FounderHomePage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!profile) {
-            router.push('/');
-            return;
-        }
         if (profile && profile.role_type === 'user') {
-            router.push('/builder/home');
+            router.push('/dashboard/builder');
         }
     }, [profile, authLoading, router]);
 

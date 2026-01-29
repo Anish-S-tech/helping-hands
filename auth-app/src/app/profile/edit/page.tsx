@@ -5,14 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import {
-    User, Mail, Github, Linkedin, Globe, Upload, Save, Loader2, Camera, Shield, ArrowLeft
+    User, Mail, Github, Linkedin, Globe, Upload, Save, Loader2, Camera,
+    ArrowLeft, CheckCircle, Sparkles, Link2, Briefcase, GraduationCap
 } from 'lucide-react';
+import { MainLayout } from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ProfileProgressBar } from '@/components/ProfileProgressBar';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { SkillsInput } from '@/components/SkillsInput';
 import { toast } from '@/components/Toast';
-import { MOCK_METRICS } from '@/data/mock-data';
+import { cn } from '@/lib/utils';
 
 export default function ProfileEditPage() {
     const router = useRouter();
@@ -31,6 +38,19 @@ export default function ProfileEditPage() {
     });
 
     const [loading, setLoading] = useState(false);
+
+    // Calculate profile completion
+    const calculateCompletion = () => {
+        let score = 0;
+        if (formData.name) score += 20;
+        if (formData.bio) score += 20;
+        if (formData.avatar_url) score += 20;
+        if (formData.github_url || formData.linkedin_url) score += 20;
+        if (formData.skills.length > 0) score += 20;
+        return score;
+    };
+
+    const completionScore = calculateCompletion();
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -64,195 +84,304 @@ export default function ProfileEditPage() {
             toast.error(error.message);
         } else {
             toast.success('Profile updated successfully!');
-            router.push(profile?.role_type === 'founder' ? '/dashboard/founder' : '/dashboard/builder');
+            router.push(profile?.role_type === 'founder' ? '/founder/home' : '/builder/home');
         }
         setLoading(false);
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex">
-            {/* Sidebar-lite for Edit Context */}
-            <aside className="w-64 border-r border-border bg-surface-1 hidden lg:flex flex-col fixed inset-y-0">
-                <div className="p-6 space-y-8">
-                    <div className="flex items-center gap-2 px-2">
-                        <div className="h-5 w-5 bg-accent rounded-sm flex items-center justify-center">
-                            <Shield className="w-3 h-3 text-white" />
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Helping Hands</span>
-                    </div>
-
-                    <div className="space-y-1">
-                        <p className="px-2 text-[9px] font-bold text-muted uppercase tracking-widest mb-4">Configuration Sections</p>
-                        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-sm bg-accent/10 text-accent text-[11px] font-bold uppercase tracking-widest">
-                            <User className="w-4 h-4" /> Personal Core
-                        </button>
-                        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-sm text-muted hover:text-foreground hover:bg-surface-2 text-[11px] font-bold uppercase tracking-widest transition-all">
-                            <Shield className="w-4 h-4" /> Security Alpha
-                        </button>
-                    </div>
-
-                    <div className="pt-6 border-t border-border">
-                        <div className="p-4 bg-background border border-border rounded-sm space-y-3">
-                            <span className="text-[9px] font-bold text-muted uppercase tracking-widest">Profile Completion</span>
-                            <div className="h-1 bg-surface-2 rounded-full overflow-hidden">
-                                <div className="h-full bg-accent w-3/4" />
-                            </div>
-                            <span className="text-[10px] font-mono font-bold text-accent">75% SECURED</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Console */}
-            <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-                <header className="h-14 border-b border-border bg-surface-1/50 backdrop-blur-sm px-8 flex items-center justify-between sticky top-0 z-50">
+        <MainLayout>
+            <div className="max-w-4xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard/builder" className="text-muted hover:text-foreground transition-all">
-                            <ArrowLeft className="w-4 h-4" />
-                        </Link>
-                        <span className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Console / Profile / Parameters</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Button
-                            onClick={handleSave}
-                            disabled={loading}
-                            size="sm"
-                            className="bg-accent text-white text-[10px] font-bold uppercase tracking-widest h-8 px-4"
-                        >
-                            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3 mr-2" />}
-                            Sync Parameters
+                        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                            <ArrowLeft className="h-5 w-5" />
                         </Button>
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight">Edit Profile</h1>
+                            <p className="text-sm text-muted-foreground">Update your profile information</p>
+                        </div>
                     </div>
-                </header>
+                    <Button onClick={handleSave} disabled={loading} className="gap-2 shadow-lg shadow-primary/20">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        Save Changes
+                    </Button>
+                </div>
 
-                <div className="p-8 max-w-4xl mx-auto w-full space-y-8">
-                    <section className="space-y-6">
-                        <h2 className="text-xl font-bold uppercase tracking-widest border-b border-border pb-4">Personal Core Data</h2>
-
-                        {/* Avatar Sync */}
-                        <div className="flex items-center gap-8 p-6 bg-surface-1 border border-border rounded-sm">
-                            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                <img
-                                    src={formData.avatar_url || `https://ui-avatars.com/api/?name=${formData.name || 'U'}&background=3b82f6&color=fff&size=128`}
-                                    alt="Avatar"
-                                    className="w-24 h-24 rounded-sm grayscale group-hover:grayscale-0 transition-all border border-border p-1 bg-background"
-                                />
-                                <div className="absolute inset-0 bg-accent/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                                    <Camera className="w-5 h-5 text-white" />
+                {/* Profile Completion */}
+                <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-violet-500/5">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-500 shadow-lg">
+                                    <Sparkles className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold">Profile Completion</h3>
+                                    <p className="text-sm text-muted-foreground">Complete your profile to get better matches</p>
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted">Identity Asset</h3>
-                                <p className="text-[11px] font-medium max-w-[200px] text-muted leading-tight">Sync your visual identity with the platform network.</p>
-                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                            <Badge variant={completionScore === 100 ? 'active' : 'secondary'} className="text-sm px-3 py-1">
+                                {completionScore}%
+                            </Badge>
+                        </div>
+                        <Progress value={completionScore} className="h-2" />
+                    </CardContent>
+                </Card>
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Left Column - Avatar */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Profile Photo</CardTitle>
+                            <CardDescription>Upload a professional photo</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center text-center">
+                            <div
+                                className="relative group cursor-pointer mb-4"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <Avatar className="h-32 w-32 ring-4 ring-background shadow-xl">
+                                    <AvatarImage
+                                        src={formData.avatar_url || `https://ui-avatars.com/api/?name=${formData.name || 'U'}&background=3b82f6&color=fff&size=200`}
+                                        className="object-cover"
+                                    />
+                                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-violet-500 text-white">
+                                        {(formData.name || 'U').substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                                    <Camera className="h-8 w-8 text-white" />
+                                </div>
                                 {formData.avatar_url && (
-                                    <button onClick={() => setFormData({ ...formData, avatar_url: '' })} className="text-[9px] font-bold text-red-500 uppercase tracking-widest border-b border-red-500/30">
-                                        Purge Asset
-                                    </button>
+                                    <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 ring-4 ring-background">
+                                        <CheckCircle className="h-4 w-4 text-white" />
+                                    </div>
                                 )}
                             </div>
-                        </div>
-
-                        {/* Form Inputs */}
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-bold text-muted uppercase tracking-widest ml-1">Full Identity Name</label>
-                                <Input
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="h-11 bg-surface-1 border-border text-sm font-mono"
-                                    placeholder="OPERATOR_NAME"
-                                />
-                            </div>
-                            <div className="space-y-2 opacity-60">
-                                <label className="text-[9px] font-bold text-muted uppercase tracking-widest ml-1">Network Address (Immutable)</label>
-                                <Input
-                                    value={profile?.email || ''}
-                                    disabled
-                                    className="h-11 bg-surface-2 border-border text-sm font-mono cursor-not-allowed"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[9px] font-bold text-muted uppercase tracking-widest ml-1">Entity Summary (Bio)</label>
-                            <textarea
-                                value={formData.bio}
-                                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                rows={4}
-                                className="w-full bg-surface-1 border border-border rounded-sm py-3 px-4 text-sm font-mono placeholder-muted focus:outline-none focus:border-accent resize-none"
-                                placeholder="// Describe your operational capabilities..."
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                className="hidden"
                             />
-                        </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="gap-2"
+                            >
+                                <Upload className="h-4 w-4" />
+                                Upload Photo
+                            </Button>
+                            {formData.avatar_url && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setFormData({ ...formData, avatar_url: '' })}
+                                    className="mt-2 text-destructive hover:text-destructive"
+                                >
+                                    Remove Photo
+                                </Button>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                        <div className="space-y-4">
-                            <label className="text-[9px] font-bold text-muted uppercase tracking-widest ml-1">Experience Tier</label>
-                            <div className="grid grid-cols-2 gap-4">
-                                {[
-                                    { value: 'fresher', label: 'Tier 1 (Fresher)', icon: '🌱' },
-                                    { value: 'experienced', label: 'Tier 2 (Experienced)', icon: '💼' },
-                                ].map((option) => (
+                    {/* Right Column - Form */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Basic Info */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <User className="h-5 w-5 text-primary" />
+                                    Basic Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Full Name *</Label>
+                                        <Input
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            placeholder="Enter your full name"
+                                            className="h-11"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email Address</Label>
+                                        <Input
+                                            id="email"
+                                            value={profile?.email || ''}
+                                            disabled
+                                            className="h-11 bg-muted/50"
+                                        />
+                                        <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="bio">Bio</Label>
+                                    <Textarea
+                                        id="bio"
+                                        value={formData.bio}
+                                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                                        rows={4}
+                                        placeholder="Tell us about yourself, your interests, and what kind of projects you're looking for..."
+                                        className="resize-none"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Experience Level */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Briefcase className="h-5 w-5 text-violet-500" />
+                                    Experience Level
+                                </CardTitle>
+                                <CardDescription>Select your current experience level</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid sm:grid-cols-2 gap-4">
                                     <button
-                                        key={option.value}
-                                        onClick={() => setFormData({ ...formData, experience_level: option.value as 'fresher' | 'experienced' })}
-                                        className={`flex items-center gap-4 p-4 rounded-sm border transition-all ${formData.experience_level === option.value
-                                            ? 'border-accent bg-accent/5'
-                                            : 'border-border bg-surface-1 hover:bg-surface-2'
-                                            }`}
+                                        onClick={() => setFormData({ ...formData, experience_level: 'fresher' })}
+                                        className={cn(
+                                            "flex flex-col items-start gap-3 p-4 rounded-xl border-2 transition-all text-left",
+                                            formData.experience_level === 'fresher'
+                                                ? "border-primary bg-primary/5"
+                                                : "border-border hover:border-primary/40 hover:bg-primary/5"
+                                        )}
                                     >
-                                        <span className="text-xl grayscale">{option.icon}</span>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">{option.label}</span>
+                                        <div className={cn(
+                                            "flex h-10 w-10 items-center justify-center rounded-lg",
+                                            formData.experience_level === 'fresher'
+                                                ? "bg-primary/20 text-primary"
+                                                : "bg-muted"
+                                        )}>
+                                            <GraduationCap className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold">Fresher</p>
+                                            <p className="text-xs text-muted-foreground">0-2 years of experience</p>
+                                        </div>
                                     </button>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
+                                    <button
+                                        onClick={() => setFormData({ ...formData, experience_level: 'experienced' })}
+                                        className={cn(
+                                            "flex flex-col items-start gap-3 p-4 rounded-xl border-2 transition-all text-left",
+                                            formData.experience_level === 'experienced'
+                                                ? "border-violet-500 bg-violet-500/5"
+                                                : "border-border hover:border-violet-500/40 hover:bg-violet-500/5"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "flex h-10 w-10 items-center justify-center rounded-lg",
+                                            formData.experience_level === 'experienced'
+                                                ? "bg-violet-500/20 text-violet-500"
+                                                : "bg-muted"
+                                        )}>
+                                            <Briefcase className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold">Experienced</p>
+                                            <p className="text-xs text-muted-foreground">3+ years of experience</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                    <section className="space-y-6 pt-8 border-t border-border">
-                        <h2 className="text-xl font-bold uppercase tracking-widest border-b border-border pb-4">Specialization Matrix</h2>
-                        <div className="bg-surface-1 border border-border rounded-sm p-6">
-                            <SkillsInput
-                                skills={formData.skills}
-                                onChange={(skills) => setFormData({ ...formData, skills })}
-                                maxSkills={15}
-                            />
-                            <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-4">
-                                // Key technologies indexed for project matching algorithms.
-                            </p>
-                        </div>
-                    </section>
+                        {/* Skills */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Sparkles className="h-5 w-5 text-amber-500" />
+                                    Skills & Expertise
+                                </CardTitle>
+                                <CardDescription>Add skills to help with project matching</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <SkillsInput
+                                    skills={formData.skills}
+                                    onChange={(skills) => setFormData({ ...formData, skills })}
+                                    maxSkills={15}
+                                />
+                            </CardContent>
+                        </Card>
 
-                    <section className="space-y-6 pt-8 border-t border-border pb-12">
-                        <h2 className="text-xl font-bold uppercase tracking-widest border-b border-border pb-4">Social Network Links</h2>
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-bold text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
-                                    <Github className="w-3 h-3" /> GitHub Matrix
-                                </label>
-                                <Input
-                                    type="url"
-                                    value={formData.github_url}
-                                    onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
-                                    className="h-10 bg-surface-1 border-border text-[11px] font-mono"
-                                    placeholder="https://github.com/operator"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-bold text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
-                                    <Linkedin className="w-3 h-3" /> LinkedIn Node
-                                </label>
-                                <Input
-                                    type="url"
-                                    value={formData.linkedin_url}
-                                    onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                                    className="h-10 bg-surface-1 border-border text-[11px] font-mono"
-                                    placeholder="https://linkedin.com/in/operator"
-                                />
-                            </div>
+                        {/* Social Links */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Link2 className="h-5 w-5 text-emerald-500" />
+                                    Social Links
+                                </CardTitle>
+                                <CardDescription>Connect your professional profiles</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="github" className="flex items-center gap-2">
+                                        <Github className="h-4 w-4" />
+                                        GitHub
+                                    </Label>
+                                    <Input
+                                        id="github"
+                                        type="url"
+                                        value={formData.github_url}
+                                        onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
+                                        placeholder="https://github.com/username"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkedin" className="flex items-center gap-2">
+                                        <Linkedin className="h-4 w-4 text-blue-600" />
+                                        LinkedIn
+                                    </Label>
+                                    <Input
+                                        id="linkedin"
+                                        type="url"
+                                        value={formData.linkedin_url}
+                                        onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                                        placeholder="https://linkedin.com/in/username"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="portfolio" className="flex items-center gap-2">
+                                        <Globe className="h-4 w-4 text-emerald-500" />
+                                        Portfolio Website
+                                    </Label>
+                                    <Input
+                                        id="portfolio"
+                                        type="url"
+                                        value={formData.portfolio_url}
+                                        onChange={(e) => setFormData({ ...formData, portfolio_url: e.target.value })}
+                                        placeholder="https://yourwebsite.com"
+                                        className="h-11"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Save Button - Mobile */}
+                        <div className="lg:hidden">
+                            <Button
+                                onClick={handleSave}
+                                disabled={loading}
+                                className="w-full gap-2 h-12 shadow-lg shadow-primary/20"
+                            >
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                Save Changes
+                            </Button>
                         </div>
-                    </section>
+                    </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </MainLayout>
     );
 }

@@ -69,12 +69,8 @@ export default function BuilderHomePage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!profile) {
-            router.push('/');
-            return;
-        }
         if (profile && profile.role_type === 'founder') {
-            router.push('/founder/home');
+            router.push('/dashboard/founder');
         }
     }, [profile, authLoading, router]);
 

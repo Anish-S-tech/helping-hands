@@ -18,7 +18,8 @@ export function RequireAuth({ children }: AuthGuardProps) {
 
     useEffect(() => {
         if (!loading && !user) {
-            router.push('/login');
+            // All unauthenticated access to protected routes goes through /auth
+            router.push('/auth');
         }
     }, [user, loading, router]);
 
@@ -52,10 +53,15 @@ export function RequireRole({ children, role }: RequireRoleProps) {
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && profile && profile.role_type !== role) {
-            // Redirect to appropriate dashboard
-            const redirectPath = profile.role_type === 'founder' ? '/dashboard/founder' : '/dashboard/builder';
-            router.push(redirectPath);
+        if (!loading && profile) {
+            if (profile.role_type !== role) {
+                // Redirect to appropriate home based on actual role
+                const redirectPath = profile.role_type === 'founder' ? '/founder/home' : '/builder/home';
+                router.push(redirectPath);
+            }
+        } else if (!loading && !profile) {
+            // No profile = not onboarded / authenticated → send to auth
+            router.push('/auth');
         }
     }, [profile, loading, role, router]);
 

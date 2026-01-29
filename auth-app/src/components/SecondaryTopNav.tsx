@@ -24,29 +24,40 @@ interface NavItem {
     icon: React.ComponentType<{ className?: string }>
 }
 
+// Public (unauthenticated) navigation
+const publicNavItems: NavItem[] = [
+    { href: '/', label: 'Explore Projects', icon: Compass },
+    { href: '/explore?tab=trending', label: 'Trending', icon: BarChart3 },
+    { href: '/explore?tab=categories', label: 'Categories', icon: FolderKanban },
+]
+
 const builderNavItems: NavItem[] = [
-    { href: '/dashboard/builder', label: 'Home', icon: Home },
-    { href: '/explore', label: 'Explore Projects', icon: Compass },
-    { href: '/projects', label: 'My Contributions', icon: Briefcase },
+    { href: '/builder/home', label: 'Home', icon: Home },
+    { href: '/', label: 'Explore Projects', icon: Compass },
+    { href: '/builder/contributions', label: 'My Contributions', icon: Briefcase },
     { href: '/chat', label: 'Messages', icon: MessageSquare },
     { href: '/notifications', label: 'Notifications', icon: Bell },
 ]
 
 const founderNavItems: NavItem[] = [
-    { href: '/dashboard/founder', label: 'Home', icon: Home },
-    { href: '/projects', label: 'My Projects', icon: FolderKanban },
+    { href: '/founder/home', label: 'Home', icon: Home },
+    { href: '/founder/projects', label: 'My Projects', icon: FolderKanban },
     { href: '/requests', label: 'Requests', icon: UserCheck },
     { href: '/team', label: 'Team', icon: Users },
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/founder/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/founder/settings', label: 'Settings', icon: Settings },
 ]
 
 export function SecondaryTopNav() {
     const pathname = usePathname()
     const { profile } = useAuth()
 
-    // Select navigation items based on role
-    const navItems = profile?.role_type === 'founder' ? founderNavItems : builderNavItems
+    // Select navigation items based on role / public state
+    const navItems = !profile
+        ? publicNavItems
+        : profile.role_type === 'founder'
+            ? founderNavItems
+            : builderNavItems
 
     return (
         <nav className="sticky top-16 z-40 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

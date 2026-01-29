@@ -1,0 +1,17 @@
+src/app/analytics/page.tsx(43,13): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder" | undefined' and '"user"' have no overlap.
+src/app/builder/contributions/page.tsx(82,30): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/builder/explore/page.tsx(198,30): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/builder/home/page.tsx(174,21): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/dashboard/founder/page.tsx(87,24): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/founder/home/page.tsx(115,24): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/founder/projects/page.tsx(51,13): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder" | undefined' and '"user"' have no overlap.
+src/app/messages/page.tsx(55,13): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder" | undefined' and '"user"' have no overlap.
+src/app/messages/page.tsx(83,13): error TS2322: Type '"founder" | "builder"' is not assignable to type '"user" | "founder"'.
+  Type '"builder"' is not assignable to type '"user" | "founder"'.
+src/app/messages/page.tsx(154,69): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/messages/page.tsx(226,51): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/messages/page.tsx(234,50): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.
+src/app/requests/page.tsx(69,13): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder" | undefined' and '"user"' have no overlap.
+src/app/team/page.tsx(58,13): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder" | undefined' and '"user"' have no overlap.
+src/components/DashboardLayout.tsx(83,69): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder" | undefined' and '"user"' have no overlap.
+src/lib/permissions.ts(32,9): error TS2367: This comparison appears to be unintentional because the types '"founder" | "builder"' and '"user"' have no overlap.

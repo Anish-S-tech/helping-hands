@@ -24,8 +24,12 @@ export function PrimaryTopNav() {
     const pathname = usePathname()
     const { profile, signOut } = useAuth()
 
-    // Determine home link based on role
-    const homeLink = profile?.role_type === 'founder' ? '/dashboard/founder' : '/dashboard/builder'
+    // Determine home link based on role (Amazon-style: go to your role home)
+    const homeLink = profile
+        ? profile.role_type === 'founder'
+            ? '/founder/home'
+            : '/builder/home'
+        : '/'
 
     // Get unread messages count (mock)
     const unreadMessages = 3
@@ -96,8 +100,8 @@ export function PrimaryTopNav() {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href="/settings" className="cursor-pointer">
-                                        Account Settings
+                                    <Link href={profile.role_type === 'founder' ? '/founder/settings' : '/builder/home'} className="cursor-pointer">
+                                        {profile.role_type === 'founder' ? 'Founder Settings' : 'My Activity'}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
@@ -111,7 +115,7 @@ export function PrimaryTopNav() {
                         </DropdownMenu>
                     ) : (
                         <Button size="sm" asChild>
-                            <Link href="/login">Sign In</Link>
+                            <Link href="/auth">Sign In</Link>
                         </Button>
                     )}
                 </div>

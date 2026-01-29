@@ -165,7 +165,7 @@ export default function FounderSettingsPage() {
                     <CardContent className="space-y-6">
                         <div className="flex items-center gap-6">
                             <Avatar className="h-20 w-20">
-                                <AvatarImage src={profile?.avatar_url} />
+                                <AvatarImage src={profile?.avatar_url || undefined} />
                                 <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-violet-500 text-white">
                                     {(profile?.name || 'U').substring(0, 2).toUpperCase()}
                                 </AvatarFallback>

@@ -227,7 +227,7 @@ export default function FounderProjectsPage() {
                                                 <Users className="h-4 w-4" />
                                                 <span>{project.member_count}/{project.team_size_needed} team</span>
                                             </div>
-                                            <span>{project.applications_count} applicants</span>
+                                            <span>{project.applications_pending} applicants</span>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button variant="outline" size="sm" className="flex-1" asChild onClick={(e) => e.stopPropagation()}>

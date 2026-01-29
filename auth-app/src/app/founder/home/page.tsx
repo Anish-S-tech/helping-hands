@@ -136,7 +136,7 @@ function ProjectHeroCard({ project, onView }: { project: Project; onView: () => 
                         <Users className="h-3.5 w-3.5" />
                         <span>{project.member_count}/{project.team_size_needed} team</span>
                     </div>
-                    <span className="truncate">{project.applications_count} applicants</span>
+                    <span className="truncate">{project.applications_pending} applicants</span>
                 </div>
             </div>
         </Card>

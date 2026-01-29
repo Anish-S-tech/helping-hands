@@ -156,7 +156,7 @@ export default function TeamPage() {
                                         <Clock className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold">{teamMembers.filter(m => m.status === 'idle').length}</p>
+                                        <p className="text-2xl font-bold">{teamMembers.filter(m => m.status === 'inactive').length}</p>
                                         <p className="text-xs text-muted-foreground">Away</p>
                                     </div>
                                 </div>
@@ -200,7 +200,7 @@ export default function TeamPage() {
                                                     <p className="font-semibold truncate group-hover:text-primary transition-colors">
                                                         {member.name}
                                                     </p>
-                                                    {member.is_lead && (
+                                                    {member.role_badge === 'lead' && (
                                                         <Crown className="h-4 w-4 text-amber-500" />
                                                     )}
                                                 </div>

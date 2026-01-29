@@ -18,7 +18,7 @@ interface FilterChipsProps {
     onToggle?: (chipId: string) => void
     onRemove?: (chipId: string) => void
     className?: string
-    variant?: "default" | "skill"
+    variant?: "default" | "skill" | "sector"
 }
 
 export function FilterChips({

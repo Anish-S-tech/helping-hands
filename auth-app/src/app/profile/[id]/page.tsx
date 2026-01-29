@@ -139,7 +139,7 @@ export default function ProfilePage() {
                     linkedin_url: mockProfile.linkedin_url || '',
                     portfolio_url: '',
                     created_at: '2025-01-01T00:00:00Z',
-                    skills: mockProfile.skills || ['React', 'TypeScript', 'Node.js'],
+                    skills: ['React', 'TypeScript', 'Node.js'],
                 });
 
                 if (mockProfile.role_type === 'founder') {

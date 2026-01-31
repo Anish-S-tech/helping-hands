@@ -357,13 +357,13 @@ export default function HomePage() {
         setTimeout(() => setIsAutoPlaying(true), 10000);
     }, []);
 
-    const recommended = MOCK_PROJECTS.slice(0, 8);
+    const recommended = MOCK_PROJECTS.slice(0, 10);
     const trending = [...MOCK_PROJECTS]
         .sort((a, b) => b.applications_pending - a.applications_pending)
-        .slice(0, 8);
+        .slice(0, 10);
     const recent = [...MOCK_PROJECTS]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 8);
+        .slice(0, 10);
 
     const byDomainMap = MOCK_PROJECTS.reduce<Record<string, Project[]>>((acc, project) => {
         const key = project.sector;
@@ -379,7 +379,7 @@ export default function HomePage() {
 
     return (
         <MainLayout>
-            <div className="space-y-10 pb-2">
+            <div className="space-y-14 pb-8">
                 {/* Amazon-style Hero Carousel */}
                 <section className="relative w-full overflow-hidden rounded-2xl">
                     {/* Slides Container */}
@@ -530,7 +530,7 @@ export default function HomePage() {
                             </div>
                         </div>
                     </div>
-                    <div className="grid gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                         {trending.map((project) => (
                             <ExploreStyleProjectCard
                                 key={project.id}
@@ -595,7 +595,7 @@ export default function HomePage() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="grid gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                                     {projects.map((project) => (
                                         <ExploreStyleProjectCard
                                             key={project.id}

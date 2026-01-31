@@ -249,13 +249,13 @@ export default function BuilderHomePage() {
     const activeProjects = MOCK_ACTIVE_PROJECTS.filter(p => p.status === 'active');
 
     // Project lists
-    const recommended = MOCK_PROJECTS.filter(p => p.status === 'open').slice(0, 8);
+    const recommended = MOCK_PROJECTS.filter(p => p.status === 'open').slice(0, 10);
     const trending = [...MOCK_PROJECTS]
         .sort((a, b) => b.applications_pending - a.applications_pending)
-        .slice(0, 8);
+        .slice(0, 10);
     const recent = [...MOCK_PROJECTS]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 8);
+        .slice(0, 10);
 
     const byDomainMap = MOCK_PROJECTS.reduce<Record<string, Project[]>>((acc, project) => {
         const key = project.sector;

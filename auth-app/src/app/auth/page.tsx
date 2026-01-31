@@ -200,8 +200,8 @@ export default function AuthPage() {
                         type="button"
                         onClick={() => setSelectedRole('builder')}
                         className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all duration-200 ${selectedRole === 'builder'
-                            ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                            : 'border-border/60 hover:border-primary/40 hover:bg-muted/30'
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-border/60 hover:border-primary/40 hover:bg-muted/30'
                           }`}
                       >
                         {selectedRole === 'builder' && (
@@ -223,8 +223,8 @@ export default function AuthPage() {
                         type="button"
                         onClick={() => setSelectedRole('founder')}
                         className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all duration-200 ${selectedRole === 'founder'
-                            ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                            : 'border-border/60 hover:border-primary/40 hover:bg-muted/30'
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-border/60 hover:border-primary/40 hover:bg-muted/30'
                           }`}
                       >
                         {selectedRole === 'founder' && (
@@ -270,9 +270,9 @@ export default function AuthPage() {
                           Password
                         </Label>
                         {mode === 'login' && (
-                          <button type="button" className="text-xs text-primary hover:underline">
+                          <a href="/forgot-password" className="text-xs text-primary hover:underline">
                             Forgot password?
-                          </button>
+                          </a>
                         )}
                       </div>
                       <div className="relative">

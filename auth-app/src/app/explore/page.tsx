@@ -1,36 +1,30 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import {
   Search,
-  MessageCircle,
   Filter,
-  Bell,
-  ChevronDown,
-  LogIn,
-  LogOut,
-  Settings,
   ChevronRight,
   Users,
   Clock,
-  Package,
-  Shield,
   Layers,
   TrendingUp,
   Star,
+  Sparkles,
+  Zap,
+  Target,
+  ArrowRight,
+  X,
 } from 'lucide-react';
 import { MOCK_PROJECTS, type Project, formatRelativeTime } from '@/data/mock-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Sheet,
   SheetContent,
@@ -40,42 +34,11 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { DashboardCarousel } from '@/components/DashboardCarousel';
 import { MainLayout } from '@/components/MainLayout';
 
-type StatusFilter = 'open' | 'in-progress' | 'closed';
-type CommitmentFilter = 'low' | 'medium' | 'high';
-type DifficultyFilter = 'beginner' | 'intermediate' | 'advanced';
-
-import { ExploreSubNav } from '@/components/ExploreSubNav';
-
-interface FilterState {
-  domains: string[];
-  tech: string[];
-  statuses: StatusFilter[];
-  commitments: CommitmentFilter[];
-  difficulties: DifficultyFilter[];
-}
-
-// Derive a simple difficulty from project metadata without changing backend types
-function getDifficulty(project: Project): DifficultyFilter {
-  if (project.commitment === 'high' || project.phase === 'active' || project.phase === 'review') {
-    return 'advanced';
-  }
-  if (project.commitment === 'medium') return 'intermediate';
-  return 'beginner';
-}
-
-// Very lightweight, ecommerce-style placeholder imagery
+// Image mapping for projects
 const PROJECT_IMAGE_MAP: Record<string, string> = {
   p1: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=800',
   p2: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -100,1169 +63,699 @@ function getProjectImage(project: Project): string {
   return 'https://images.pexels.com/photos/3184632/pexels-photo-3184632.jpeg?auto=compress&cs=tinysrgb&w=800';
 }
 
-// Home-page style Project Card with images (for trending/categories tabs)
-function ProjectHeroCard({ project, onView }: { project: Project; onView: () => void }) {
+// Featured Project Card (large, premium styling)
+function FeaturedProjectCard({ project, onView }: { project: Project; onView: () => void }) {
   const imageSrc = getProjectImage(project);
 
   return (
     <Card
-      className="group relative flex w-72 flex-shrink-0 cursor-pointer flex-col overflow-hidden rounded-xl border border-border/60 bg-card/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+      className="group relative cursor-pointer overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:-translate-y-2"
       onClick={onView}
     >
-      <div className="relative h-36 w-full overflow-hidden">
-        <Image
-          src={imageSrc}
-          alt={project.title}
-          fill
-          sizes="(min-width: 1280px) 288px, (min-width: 768px) 33vw, 50vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
-        <div className="absolute left-3 top-3 flex flex-col gap-1">
-          <Badge variant="secondary" className="w-max text-[10px] font-semibold backdrop-blur-sm">
-            {project.sector}
-          </Badge>
-          <Badge
-            variant={project.status === 'open' ? 'active' : project.status === 'in-progress' ? 'warning' : 'outline'}
-            className="w-max text-[10px] font-semibold backdrop-blur-sm"
-          >
-            {project.status === 'open' ? 'Accepting contributors' : project.status === 'in-progress' ? 'In active build' : 'Closed'}
-          </Badge>
-        </div>
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[11px] text-white/90">
-          <Layers className="h-3.5 w-3.5" />
-          <span className="truncate font-medium drop-shadow-sm">{project.phase.toUpperCase()}</span>
-        </div>
-      </div>
+      <div className="grid md:grid-cols-2 gap-0">
+        {/* Image Section */}
+        <div className="relative h-64 md:h-80 overflow-hidden">
+          <Image
+            src={imageSrc}
+            alt={project.title}
+            fill
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-card md:bg-gradient-to-r" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent md:hidden" />
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-1 text-sm font-semibold tracking-tight group-hover:text-primary">
-              {project.title}
-            </h3>
-            <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-              {formatRelativeTime(project.last_activity)}
-            </span>
-          </div>
-          <p className="line-clamp-2 text-[12px] text-muted-foreground/90">
-            {project.description}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          {project.skills_needed.slice(0, 3).map((skill) => (
-            <Badge
-              key={skill}
-              variant="secondary"
-              className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-secondary/40 border-0"
-            >
-              {skill}
+          {/* Badges */}
+          <div className="absolute left-4 top-4 flex flex-col gap-2">
+            <Badge className="bg-primary/90 text-primary-foreground backdrop-blur-md shadow-lg">
+              <Sparkles className="mr-1 h-3 w-3" />
+              Featured
             </Badge>
-          ))}
-          {project.skills_needed.length > 3 && (
-            <span className="text-[10px] text-muted-foreground">
-              +{project.skills_needed.length - 3} more
-            </span>
+            <Badge variant={project.status === 'open' ? 'active' : 'warning'} className="backdrop-blur-md shadow-sm">
+              {project.status === 'open' ? 'Accepting Members' : 'In Progress'}
+            </Badge>
+          </div>
+
+          {/* Applications Count */}
+          {project.applications_pending > 0 && (
+            <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+              <TrendingUp className="h-3.5 w-3.5" />
+              {project.applications_pending} requests
+            </div>
           )}
         </div>
 
-        <div className="mt-auto flex items-center justify-between border-t border-dashed border-border/60 pt-3 text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Users className="h-3.5 w-3.5" />
-            <span>
-              {project.member_count}/{project.team_size_needed} on team
-            </span>
-          </div>
-          <span className="truncate">Founder: {project.founder.name}</span>
-        </div>
-      </div>
+        {/* Content Section */}
+        <div className="flex flex-col justify-center p-6 md:p-8">
+          <Badge variant="secondary" className="w-max mb-3 text-xs">
+            {project.sector}
+          </Badge>
 
-      {/* Hover CTA overlay */}
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-background/95 via-background/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-        <div className="mb-4 flex flex-col items-center gap-2 px-3 text-center">
-          <p className="text-xs font-medium text-foreground">
-            View project details and request to join as a Builder or Founder.
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:text-primary transition-colors">
+            {project.title}
+          </h3>
+
+          <p className="text-muted-foreground mb-4 line-clamp-2 md:line-clamp-3">
+            {project.description}
           </p>
-          <Button
-            size="sm"
-            className="pointer-events-auto h-8 rounded-full px-4 text-[11px] font-semibold shadow-sm bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            View Project
-          </Button>
+
+          {/* Skills */}
+          <div className="flex flex-wrap gap-2 mb-5">
+            {project.skills_needed.slice(0, 4).map((skill) => (
+              <Badge
+                key={skill}
+                variant="outline"
+                className="rounded-full bg-primary/5 text-primary border-primary/20"
+              >
+                {skill}
+              </Badge>
+            ))}
+            {project.skills_needed.length > 4 && (
+              <Badge variant="outline" className="rounded-full">
+                +{project.skills_needed.length - 4}
+              </Badge>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-violet-500/20 ring-2 ring-background">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{project.founder.name}</p>
+                <p className="text-xs text-muted-foreground">{project.member_count}/{project.team_size_needed} members</p>
+              </div>
+            </div>
+            <Button className="rounded-full shadow-lg hover:shadow-primary/20">
+              View Project
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
   );
 }
 
-// --- NAVBAR ---
-
-interface ExploreNavbarProps {
-  searchInput: string;
-  onSearchInputChange: (value: string) => void;
-  onOpenFilters: () => void;
-  messagesCount: number;
-  activeFilterCount: number;
-}
-
-function ExploreNavbar({
-  searchInput,
-  onSearchInputChange,
-  onOpenFilters,
-  messagesCount,
-  activeFilterCount,
-}: ExploreNavbarProps) {
-  const { profile, signOut } = useAuth();
-  const router = useRouter();
-
-  const initials = profile?.name?.[0]?.toUpperCase() ?? profile?.email?.[0]?.toUpperCase() ?? 'U';
-
-  const handleSignIn = () => {
-    router.push('/login');
-  };
-
-  const handleSettings = () => {
-    router.push('/settings');
-  };
+// Project Card (compact, grid style)
+function ProjectCard({ project, onView, index = 0 }: { project: Project; onView: () => void; index?: number }) {
+  const imageSrc = getProjectImage(project);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <nav className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-5 px-4 sm:px-6 lg:px-8">
-        {/* Left: Logo */}
-        <Link href="/" className="flex items-center gap-2" aria-label="Helping Hands home">
-          <div className="flex h-8 w-8 items-center justify-center rounded-sm border bg-muted">
-            <Package className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs font-semibold tracking-wide text-muted-foreground">
-              HELPING HANDS
-            </span>
-            <span className="text-xs font-medium text-foreground">Explore</span>
-          </div>
-        </Link>
+    <Card
+      className={cn(
+        "group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/30 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:bg-card/80 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
+        `stagger-${(index % 8) + 1}`
+      )}
+      onClick={onView}
+    >
+      {/* Image */}
+      <div className="relative h-44 w-full overflow-hidden">
+        <Image
+          src={imageSrc}
+          alt={project.title}
+          fill
+          sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
 
-        {/* Center: Search */}
-        <div className="flex-1">
-          <div className="relative mx-auto max-w-xl">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={searchInput}
-              onChange={(e) => onSearchInputChange(e.target.value)}
-              placeholder="Search startup projects, domains, or skills"
-              className="h-10 w-full rounded-full border px-10 text-sm"
-              aria-label="Search projects"
-            />
-          </div>
+        {/* Top badges */}
+        <div className="absolute left-3 top-3">
+          <Badge
+            variant={project.status === 'open' ? 'active' : project.status === 'in-progress' ? 'warning' : 'outline'}
+            className="backdrop-blur-md shadow-sm text-[10px]"
+          >
+            {project.status === 'open' ? 'Open' : project.status === 'in-progress' ? 'Building' : 'Closed'}
+          </Badge>
         </div>
 
-        {/* Right: actions */}
-        <div className="flex items-center gap-3">
-          {/* Messages */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="relative h-9 w-9"
-            aria-label="Explore messages (mocked)"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-amber-50">
-              {messagesCount}
-            </span>
-          </Button>
+        {/* Applications indicator */}
+        {project.applications_pending > 0 && (
+          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground shadow-lg">
+            <Zap className="h-3 w-3" />
+            {project.applications_pending}
+          </div>
+        )}
 
-          {/* Filters trigger */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="relative hidden whitespace-nowrap text-xs font-medium sm:inline-flex"
-            onClick={onOpenFilters}
-          >
-            <Filter className="mr-1.5 h-3.5 w-3.5" />
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            )}
-          </Button>
+        {/* Bottom sector badge */}
+        <div className="absolute bottom-3 left-3">
+          <Badge variant="secondary" className="backdrop-blur-md bg-background/70 text-[10px]">
+            {project.sector}
+          </Badge>
+        </div>
+      </div>
 
-          {/* Notifications placeholder */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            aria-label="Notifications (mocked)"
-          >
-            <Bell className="h-4 w-4" />
-          </Button>
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="text-sm font-bold tracking-tight mb-1.5 group-hover:text-primary transition-colors line-clamp-1">
+          {project.title}
+        </h3>
+        <p className="text-[11px] text-muted-foreground line-clamp-2 mb-3">
+          {project.description}
+        </p>
 
-          {/* Profile / Auth */}
-          {profile ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-2 rounded-full border bg-card px-1.5 py-1 text-left text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  aria-label="Open profile menu"
-                >
-                  <Avatar className="h-7 w-7 border">
-                    <AvatarFallback className="text-[11px]">{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="hidden min-w-0 flex-col sm:flex">
-                    <span className="truncate font-medium">
-                      {profile.name || profile.email}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {profile.role_type === 'founder' ? 'Founder' : 'Member'}
-                    </span>
-                  </div>
-                  <ChevronDown className="ml-1 hidden h-3 w-3 text-muted-foreground sm:block" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="text-xs">
-                  Signed in as
-                  <div className="truncate text-[11px] font-medium">
-                    {profile.email}
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/dashboard/builder')}>
-                  <Shield className="mr-2 h-3.5 w-3.5" />
-                  <span>Go to dashboard</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSettings}>
-                  <Settings className="mr-2 h-3.5 w-3.5" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={async () => {
-                    await signOut();
-                    router.push('/');
-                  }}
-                >
-                  <LogOut className="mr-2 h-3.5 w-3.5" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button
-              type="button"
-              size="sm"
-              className="h-9 rounded-full px-3 text-xs font-semibold"
-              onClick={handleSignIn}
+        {/* Skills */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {project.skills_needed.slice(0, 3).map((skill) => (
+            <Badge
+              key={skill}
+              variant="secondary"
+              className="rounded-full px-2 py-0.5 text-[10px] bg-primary/10 text-primary border-0"
             >
-              <LogIn className="mr-1.5 h-3.5 w-3.5" />
-              Sign in
-            </Button>
+              {skill}
+            </Badge>
+          ))}
+          {project.skills_needed.length > 3 && (
+            <span className="text-[10px] text-muted-foreground self-center">
+              +{project.skills_needed.length - 3}
+            </span>
           )}
         </div>
-      </nav>
-    </header>
+
+        {/* Footer */}
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-border/30 text-[11px]">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-3 w-3 text-primary" />
+            </div>
+            <span className="font-medium">{project.member_count}/{project.team_size_needed}</span>
+          </div>
+          <span className="text-muted-foreground">{formatRelativeTime(project.last_activity)}</span>
+        </div>
+      </div>
+    </Card>
   );
 }
 
-// --- FILTER DRAWER ---
-
-interface FilterDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  domains: string[];
-  techOptions: string[];
-  value: FilterState;
-  onChange: (next: FilterState) => void;
-  onClear: () => void;
+// Category Card
+function CategoryCard({ name, count, icon: Icon, color, onClick }: {
+  name: string;
+  count: number;
+  icon: React.ElementType;
+  color: string;
+  onClick: () => void;
+}) {
+  return (
+    <Card
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-border/30 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:-translate-y-1"
+      onClick={onClick}
+    >
+      <div className="p-5">
+        <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center mb-4", color)}>
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+        <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{name}</h3>
+        <p className="text-sm text-muted-foreground">{count} project{count !== 1 ? 's' : ''}</p>
+      </div>
+    </Card>
+  );
 }
 
-function FilterDrawer({
+// Section Header Component
+function SectionHeader({
+  icon: Icon,
+  iconColor,
+  title,
+  subtitle,
+  action
+}: {
+  icon: React.ElementType;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="flex items-center gap-3">
+        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", iconColor)}>
+          <Icon className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// Filter Sheet
+function FilterSheet({
   open,
   onOpenChange,
-  domains,
-  techOptions,
-  value,
-  onChange,
+  sectors,
+  selectedSectors,
+  onSectorChange,
   onClear,
-}: FilterDrawerProps) {
-  const toggleInArray = <T,>(arr: T[], item: T): T[] =>
-    arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
-
-  const handleApply = () => {
-    onOpenChange(false);
-  };
-
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  sectors: string[];
+  selectedSectors: string[];
+  onSectorChange: (sector: string) => void;
+  onClear: () => void;
+}) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full max-w-md space-y-4 border-l">
+      <SheetContent className="w-80">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-base">
-            <Filter className="h-4 w-4" />
-            Filter Projects
-          </SheetTitle>
-          <SheetDescription className="text-xs">
-            Find projects that match your skills, interests, and availability.
+          <SheetTitle>Filter Projects</SheetTitle>
+          <SheetDescription>
+            Narrow down projects by category and criteria
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-[calc(100%-5.5rem)] flex-col gap-5 overflow-y-auto pr-1 text-xs">
-          {/* Domain / Category */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold tracking-wide text-foreground">
-              Project Domain
-            </h3>
-            <div className="grid grid-cols-2  gap-2.5">
-              {domains.map((sector) => (
-                <button
-                  key={sector}
-                  type="button"
-                  className={cn(
-                    'flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs transition-colors',
-                    value.domains.includes(sector)
-                      ? 'border-primary/50 bg-primary/10 text-primary'
-                      : 'border-border/60 hover:bg-muted/60'
-                  )}
-                  onClick={() =>
-                    onChange({ ...value, domains: toggleInArray(value.domains, sector) })
-                  }
-                >
-                  <span className="truncate">{sector}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Tech stack */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold tracking-wide text-foreground">
-              Skills Required
-            </h3>
-            <div className="space-y-2.5">
-              {techOptions.map((tech) => (
-                <label key={tech} className="flex items-center gap-2">
+        <div className="py-6 space-y-6">
+          <div>
+            <h4 className="font-semibold mb-3">Categories</h4>
+            <div className="space-y-2">
+              {sectors.map((sector) => (
+                <label key={sector} className="flex items-center gap-3 cursor-pointer group">
                   <Checkbox
-                    checked={value.tech.includes(tech)}
-                    onChange={() =>
-                      onChange({ ...value, tech: toggleInArray(value.tech, tech) })
-                    }
-                    aria-label={tech}
+                    checked={selectedSectors.includes(sector)}
+                    onChange={() => onSectorChange(sector)}
                   />
-                  <span className="truncate text-xs">{tech}</span>
+                  <span className="text-sm group-hover:text-primary transition-colors">{sector}</span>
                 </label>
               ))}
             </div>
-          </section>
-
-          {/* Project status */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold tracking-wide text-foreground">
-              Project status
-            </h3>
-            <div className="space-y-2.5">
-              {[
-                { label: 'Open to collaborators', value: 'open' as StatusFilter },
-                { label: 'In progress', value: 'in-progress' as StatusFilter },
-                { label: 'Closed / completed', value: 'closed' as StatusFilter },
-              ].map((item) => (
-                <label key={item.value} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={value.statuses.includes(item.value)}
-                    onChange={() =>
-                      onChange({
-                        ...value,
-                        statuses: toggleInArray(value.statuses, item.value),
-                      })
-                    }
-                    aria-label={item.label}
-                  />
-                  <span className="text-xs">{item.label}</span>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          {/* Commitment */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold tracking-wide text-foreground">
-              Time Commitment
-            </h3>
-            <div className="space-y-2.5">
-              {[
-                { label: 'Low (weekends / casual)', value: 'low' as CommitmentFilter },
-                { label: 'Medium (steady)', value: 'medium' as CommitmentFilter },
-                { label: 'High (intensive)', value: 'high' as CommitmentFilter },
-              ].map((item) => (
-                <label key={item.value} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={value.commitments.includes(item.value)}
-                    onChange={() =>
-                      onChange({
-                        ...value,
-                        commitments: toggleInArray(value.commitments, item.value),
-                      })
-                    }
-                    aria-label={item.label}
-                  />
-                  <span className="text-xs">{item.label}</span>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          {/* Difficulty */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold tracking-wide text-foreground">
-              Experience Level
-            </h3>
-            <div className="space-y-2.5">
-              {[
-                { label: 'Beginner friendly', value: 'beginner' as DifficultyFilter },
-                { label: 'Intermediate', value: 'intermediate' as DifficultyFilter },
-                { label: 'Advanced', value: 'advanced' as DifficultyFilter },
-              ].map((item) => (
-                <label key={item.value} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={value.difficulties.includes(item.value)}
-                    onChange={() =>
-                      onChange({
-                        ...value,
-                        difficulties: toggleInArray(value.difficulties, item.value),
-                      })
-                    }
-                    aria-label={item.label}
-                  />
-                  <span className="text-xs">{item.label}</span>
-                </label>
-              ))}
-            </div>
-          </section>
+          </div>
         </div>
 
-        <SheetFooter className="sticky bottom-0 mt-4 flex items-center justify-between border-t bg-background pt-4">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs"
-            onClick={onClear}
-          >
-            Clear all
-          </Button>
-          <Button type="button" size="sm" className="text-xs" onClick={handleApply}>
-            Apply filters
-          </Button>
+        <SheetFooter>
+          <Button variant="outline" onClick={onClear}>Clear All</Button>
+          <Button onClick={() => onOpenChange(false)}>Apply Filters</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
   );
 }
 
-// --- PROJECT CARD GRID ---
-
-interface ProjectCardProps {
-  project: Project;
-  difficulty: DifficultyFilter;
-  onViewDetails: () => void;
-}
-
-function ProjectCard({ project, difficulty, onViewDetails }: ProjectCardProps) {
-  const imageSrc = getProjectImage(project);
-  const capacityPercent = Math.min(
-    100,
-    ((project.member_count + 1) / project.team_size_needed) * 100
-  );
-
-  const statusVariant: StatusFilter =
-    project.status === 'open'
-      ? 'open'
-      : project.status === 'in-progress'
-        ? 'in-progress'
-        : 'closed';
-
-  const statusLabel =
-    statusVariant === 'open'
-      ? 'Open'
-      : statusVariant === 'in-progress'
-        ? 'In progress'
-        : 'Closed';
-
-  const statusBadgeVariant =
-    statusVariant === 'open'
-      ? ('active' as const)
-      : statusVariant === 'in-progress'
-        ? ('warning' as const)
-        : ('outline' as const);
-
-  return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-lg border border-border/50 bg-card/50 text-xs transition-all duration-200 hover:border-primary/30 hover:bg-card/70 focus-within:ring-2 focus-within:ring-ring">
-      {/* Image strip */}
-      <div className="relative h-36 w-full overflow-hidden bg-surface-1">
-        <Image
-          src={imageSrc}
-          alt={project.title}
-          fill
-          sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw"
-          className="object-cover"
-        />
-      </div>
-
-      <CardHeader className="space-y-2 pb-2 pt-4 px-4">
-        <div className="flex items-center justify-between gap-2">
-          <Badge variant="secondary" className="max-w-[60%] truncate text-[10px] font-medium rounded-full bg-secondary/50">
-            {project.sector}
-          </Badge>
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span>
-              {new Date(project.created_at).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </span>
-          </div>
-        </div>
-        <CardTitle className="line-clamp-1 text-sm font-bold leading-snug">
-          {project.title}
-        </CardTitle>
-        <CardDescription className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/80">
-          {project.description}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="flex-1 space-y-3 pb-3 pt-1 px-4">
-        <div className="flex flex-wrap gap-1.5">
-          {project.skills_needed.slice(0, 3).map((skill) => (
-            <Badge
-              key={skill}
-              variant="secondary"
-              className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-secondary/40 border-0"
-            >
-              {skill}
-            </Badge>
-          ))}
-          {project.skills_needed.length > 3 && (
-            <span className="text-[10px] text-muted-foreground">
-              +{project.skills_needed.length - 3} more
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Team capacity</span>
-            <span className="text-[11px] font-semibold">
-              {project.member_count + 1}/{project.team_size_needed}
-            </span>
-          </div>
-          <Progress value={capacityPercent} className="h-1.5" />
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant={statusBadgeVariant} className="text-[10px] font-medium rounded-full">
-            {statusLabel}
-          </Badge>
-          <Badge variant="outline" className="text-[10px] rounded-full border-border/60">
-            {difficulty === 'beginner'
-              ? 'Beginner friendly'
-              : difficulty === 'intermediate'
-                ? 'Intermediate'
-                : 'Advanced'}
-          </Badge>
-          <Badge variant="outline" className="text-[10px]">
-            {project.commitment === 'low'
-              ? 'Low commitment'
-              : project.commitment === 'medium'
-                ? 'Medium commitment'
-                : 'High commitment'}
-          </Badge>
-        </div>
-      </CardContent>
-
-      <CardFooter className="flex items-center justify-between gap-2 border-t border-border/50 bg-muted/10 py-3 px-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-muted/30">
-            <Users className="h-3.5 w-3.5 text-muted-foreground/70" />
-          </div>
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate text-[11px] font-medium">
-              {project.founder.name}
-            </span>
-            <span className="text-[10px] text-muted-foreground">Founder</span>
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className="h-8 rounded-full px-3 text-[11px] font-medium shadow-none"
-          onClick={onViewDetails}
-        >
-          View Project
-          <ChevronRight className="ml-1 h-3 w-3" />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
-
-// --- PAGE ---
-
-function parseFilterStateFromSearchParams(searchParams: URLSearchParams, allDomains: string[], allTech: string[]): FilterState {
-  const parseList = (key: string): string[] => {
-    const raw = searchParams.get(key);
-    if (!raw) return [];
-    return raw.split(',').map((v) => decodeURIComponent(v)).filter(Boolean);
-  };
-
-  const domains = parseList('domain').filter((d) => allDomains.includes(d));
-  const tech = parseList('tech').filter((t) => allTech.includes(t));
-  const statuses = parseList('status').filter((s) =>
-    ['open', 'in-progress', 'closed'].includes(s)
-  ) as StatusFilter[];
-  const commitments = parseList('commitment').filter((c) =>
-    ['low', 'medium', 'high'].includes(c)
-  ) as CommitmentFilter[];
-  const difficulties = parseList('difficulty').filter((d) =>
-    ['beginner', 'intermediate', 'advanced'].includes(d)
-  ) as DifficultyFilter[];
-
-  return { domains, tech, statuses, commitments, difficulties };
-}
-
-function writeFilterStateToSearchParams(
-  searchParams: URLSearchParams,
-  filters: FilterState,
-  searchQuery: string
-): string {
-  const params = new URLSearchParams(searchParams.toString());
-
-  // search
-  if (searchQuery) {
-    params.set('q', searchQuery);
-  } else {
-    params.delete('q');
-  }
-
-  const setList = (key: string, values: string[]) => {
-    if (values.length === 0) {
-      params.delete(key);
-    } else {
-      params.set(
-        key,
-        values
-          .map((v) => encodeURIComponent(v))
-          .join(',')
-      );
-    }
-  };
-
-  setList('domain', filters.domains);
-  setList('tech', filters.tech);
-  setList('status', filters.statuses);
-  setList('commitment', filters.commitments);
-  setList('difficulty', filters.difficulties);
-
-  return params.toString();
-}
-
-// --- TRENDING TAB CONTENT (matches home page UI) ---
-interface TabContentProps {
-  onViewProject: (projectId: string) => void;
-}
-
-function TrendingTabContent({ onViewProject }: TabContentProps) {
-  const trending = useMemo(
-    () =>
-      [...MOCK_PROJECTS]
-        .sort((a, b) => b.applications_pending - a.applications_pending)
-        .slice(0, 8),
-    []
-  );
-  const recent = useMemo(
-    () =>
-      [...MOCK_PROJECTS]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 8),
-    []
-  );
-
-  return (
-    <MainLayout>
-      <div className="space-y-10 pb-2">
-        {/* Trending Projects Section */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
-              <div>
-                <h2 className="text-sm font-semibold tracking-tight md:text-base">
-                  Trending Projects
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Projects with the most join requests and active conversations.
-                </p>
-              </div>
-            </div>
-          </div>
-          <DashboardCarousel>
-            {trending.map((project) => (
-              <ProjectHeroCard
-                key={project.id}
-                project={project}
-                onView={() => onViewProject(project.id)}
-              />
-            ))}
-          </DashboardCarousel>
-        </section>
-
-        {/* Recently Added Section */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-sky-500" />
-              <div>
-                <h2 className="text-sm font-semibold tracking-tight md:text-base">
-                  Recently Added
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Fresh projects that just landed on Helping Hands.
-                </p>
-              </div>
-            </div>
-          </div>
-          <DashboardCarousel>
-            {recent.map((project) => (
-              <ProjectHeroCard
-                key={project.id}
-                project={project}
-                onView={() => onViewProject(project.id)}
-              />
-            ))}
-          </DashboardCarousel>
-        </section>
-
-        {/* Hot & Rising */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-amber-500" />
-              <div>
-                <h2 className="text-sm font-semibold tracking-tight md:text-base">
-                  Hot & Rising
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Startups gaining momentum this week.
-                </p>
-              </div>
-            </div>
-          </div>
-          <DashboardCarousel>
-            {MOCK_PROJECTS.slice(4, 12).map((project) => (
-              <ProjectHeroCard
-                key={project.id}
-                project={project}
-                onView={() => onViewProject(project.id)}
-              />
-            ))}
-          </DashboardCarousel>
-        </section>
-      </div>
-    </MainLayout>
-  );
-}
-
-// --- CATEGORIES TAB CONTENT (matches home page UI) ---
-function CategoriesTabContent({ onViewProject }: TabContentProps) {
-  const byDomainMap = useMemo(
-    () =>
-      MOCK_PROJECTS.reduce<Record<string, Project[]>>((acc, project) => {
-        const key = project.sector;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(project);
-        return acc;
-      }, {}),
-    []
-  );
-
-  return (
-    <MainLayout>
-      <div className="space-y-10 pb-2">
-        {/* Header */}
-        <section className="grid gap-6 rounded-2xl border border-border/60 bg-gradient-to-br from-background via-background to-background/80 p-6 md:p-8">
-          <div className="space-y-4">
-            <Badge variant="outline" className="mb-1 w-max text-[10px] font-semibold uppercase tracking-[0.18em]">
-              Browse by Category
-            </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-              Projects by Domain
-            </h1>
-            <p className="max-w-xl text-sm text-muted-foreground md:text-base">
-              Find startups in your area of expertise. Browse by sector to discover collaboration opportunities.
-            </p>
-          </div>
-        </section>
-
-        {/* Domain Sections */}
-        {Object.entries(byDomainMap).map(([domain, projects]) => (
-          <section key={domain} className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-violet-500" />
-                <div>
-                  <h2 className="text-sm font-semibold tracking-tight md:text-base">
-                    {domain}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {projects.length} active project{projects.length > 1 ? 's' : ''} in this category
-                  </p>
-                </div>
-              </div>
-            </div>
-            <DashboardCarousel>
-              {projects.map((project) => (
-                <ProjectHeroCard
-                  key={project.id}
-                  project={project}
-                  onView={() => onViewProject(project.id)}
-                />
-              ))}
-            </DashboardCarousel>
-          </section>
-        ))}
-      </div>
-    </MainLayout>
-  );
-}
-
-function ExplorePageContent() {
-  const { profile } = useAuth();
+// Main Page Content
+function ExploreContent() {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { profile } = useAuth();
 
-  // Check for tab parameter to show home-page-style content
-  const activeTab = searchParams.get('tab');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
 
-  // All hooks must be called before any conditional returns
-  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
-  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') ?? '');
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(12);
-  const [loading, setLoading] = useState(true);
+  // Get active tab from URL params
+  const activeTab = searchParams.get('tab') || 'all';
 
-  // Derive options from mock data (no backend changes)
-  const allProjects = useMemo(() => MOCK_PROJECTS, []);
-
-  const allDomains = useMemo(
-    () =>
-      Array.from(new Set(allProjects.map((p) => p.sector))).sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [allProjects]
+  // Derived data
+  const sectors = useMemo(() =>
+    [...new Set(MOCK_PROJECTS.map(p => p.sector))].sort(),
+    []
   );
 
-  const allTech = useMemo(() => {
-    const techSet = new Set<string>();
-    allProjects.forEach((p) => p.skills_needed.forEach((skill) => techSet.add(skill)));
-    return Array.from(techSet).sort((a, b) => a.localeCompare(b));
-  }, [allProjects]);
-
-  const [filters, setFilters] = useState<FilterState>(() =>
-    parseFilterStateFromSearchParams(
-      new URLSearchParams(searchParams.toString()),
-      allDomains,
-      allTech
-    )
+  const featuredProject = useMemo(() =>
+    MOCK_PROJECTS.find(p => p.applications_pending >= 5) || MOCK_PROJECTS[0],
+    []
   );
 
-  // Simulate loading / skeletons for UX
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
+  const trendingProjects = useMemo(() =>
+    [...MOCK_PROJECTS]
+      .sort((a, b) => b.applications_pending - a.applications_pending)
+      .slice(0, 10),
+    []
+  );
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput.trim());
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const recentProjects = useMemo(() =>
+    [...MOCK_PROJECTS]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10),
+    []
+  );
 
-  // Keep URL in sync whenever filters or debounced search change
-  useEffect(() => {
-    // Don't update URL if we're on a special tab
-    if (activeTab === 'trending' || activeTab === 'categories') return;
+  const projectsByCategory = useMemo(() =>
+    MOCK_PROJECTS.reduce<Record<string, Project[]>>((acc, project) => {
+      if (!acc[project.sector]) acc[project.sector] = [];
+      acc[project.sector].push(project);
+      return acc;
+    }, {}),
+    []
+  );
 
-    const queryString = writeFilterStateToSearchParams(
-      new URLSearchParams(searchParams.toString()),
-      filters,
-      debouncedSearch
-    );
-
-    const url = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(url, { scroll: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, debouncedSearch]);
-
-  // Filtered projects
   const filteredProjects = useMemo(() => {
-    return allProjects.filter((project) => {
-      const difficulty = getDifficulty(project);
+    let projects = [...MOCK_PROJECTS];
 
-      const matchesSearch =
-        !debouncedSearch ||
-        project.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        project.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        project.founder.name.toLowerCase().includes(debouncedSearch.toLowerCase());
-
-      const matchesDomain =
-        filters.domains.length === 0 || filters.domains.includes(project.sector);
-
-      const matchesTech =
-        filters.tech.length === 0 ||
-        project.skills_needed.some((skill) => filters.tech.includes(skill));
-
-      const matchesStatus =
-        filters.statuses.length === 0 || filters.statuses.includes(project.status as StatusFilter);
-
-      const matchesCommitment =
-        filters.commitments.length === 0 ||
-        filters.commitments.includes(project.commitment as CommitmentFilter);
-
-      const matchesDifficulty =
-        filters.difficulties.length === 0 || filters.difficulties.includes(difficulty);
-
-      return (
-        matchesSearch &&
-        matchesDomain &&
-        matchesTech &&
-        matchesStatus &&
-        matchesCommitment &&
-        matchesDifficulty
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      projects = projects.filter(p =>
+        p.title.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        p.sector.toLowerCase().includes(query) ||
+        p.skills_needed.some(s => s.toLowerCase().includes(query))
       );
-    });
-  }, [allProjects, debouncedSearch, filters]);
-
-  const projectsToShow = filteredProjects.slice(0, visibleCount);
-
-  const handleViewDetails = (projectId: string) => {
-    if (!profile) {
-      router.push(`/login/user?redirect=/projects/${projectId}`);
-      return;
     }
-    router.push(`/projects/${projectId}`);
+
+    if (selectedSectors.length > 0) {
+      projects = projects.filter(p => selectedSectors.includes(p.sector));
+    }
+
+    return projects;
+  }, [searchQuery, selectedSectors]);
+
+  const handleViewProject = useCallback((projectId: string) => {
+    router.push('/auth');
+  }, [router]);
+
+  const handleSectorChange = (sector: string) => {
+    setSelectedSectors(prev =>
+      prev.includes(sector)
+        ? prev.filter(s => s !== sector)
+        : [...prev, sector]
+    );
   };
 
-  // Render home-page-style UI for trending/categories tabs (after all hooks)
-  if (activeTab === 'trending') {
-    return <TrendingTabContent onViewProject={handleViewDetails} />;
-  }
-
-  if (activeTab === 'categories') {
-    return <CategoriesTabContent onViewProject={handleViewDetails} />;
-  }
-
-  const handleClearFilters = () => {
-    setFilters({
-      domains: [],
-      tech: [],
-      statuses: [],
-      commitments: [],
-      difficulties: [],
-    });
-    setSearchInput('');
+  const handleTabChange = (tab: string) => {
+    router.push(`/explore?tab=${tab}`);
   };
 
-  const messagesCount = 9; // Mocked badge count, TODO: replace with backend once messaging is wired here
+  const categoryIcons: Record<string, { icon: React.ElementType; color: string }> = {
+    'AI & ML': { icon: Sparkles, color: 'bg-violet-500' },
+    'FinTech': { icon: TrendingUp, color: 'bg-emerald-500' },
+    'EdTech': { icon: Target, color: 'bg-blue-500' },
+    'HealthTech': { icon: Zap, color: 'bg-rose-500' },
+    'Web3 & Crypto': { icon: Layers, color: 'bg-amber-500' },
+    'SaaS & Enterprise': { icon: Star, color: 'bg-cyan-500' },
+    'Cybersecurity': { icon: Filter, color: 'bg-red-500' },
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <ExploreNavbar
-        searchInput={searchInput}
-        onSearchInputChange={setSearchInput}
-        onOpenFilters={() => setFilterDrawerOpen(true)}
-        messagesCount={messagesCount}
-        activeFilterCount={
-          filters.domains.length +
-          filters.tech.length +
-          filters.statuses.length +
-          filters.commitments.length +
-          filters.difficulties.length
-        }
-      />
+    <MainLayout>
+      <div className="space-y-16 pb-12">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-violet-500/5 to-background border border-border/30">
+          <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
+          <div className="relative px-6 py-12 md:px-10 md:py-16">
+            <div className="max-w-2xl">
+              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+                <Sparkles className="mr-1 h-3 w-3" />
+                Explore Projects
+              </Badge>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+                Find Your Next <span className="text-primary">Collaboration</span>
+              </h1>
+              <p className="text-lg text-muted-foreground mb-6">
+                Discover startups, join teams, and build something meaningful. Browse {MOCK_PROJECTS.length}+ active projects across multiple domains.
+              </p>
 
-      {/* Project-scoped sub-navigation */}
-      <ExploreSubNav />
-
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 pb-10 pt-4 sm:px-6 lg:px-8">
-        {/* Category strip / header */}
-        <section
-          aria-label="Explore startup projects overview"
-          className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"
-        >
-          <div className="flex min-w-0 flex-col gap-1">
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <Shield className="h-3.5 w-3.5" />
-              <span>Discover collaboration opportunities in innovative startups.</span>
+              {/* Search Bar */}
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search projects, skills, or categories..."
+                    className="h-12 pl-12 rounded-xl bg-background/80 backdrop-blur-sm border-border/50"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 rounded-xl"
+                  onClick={() => setFilterOpen(true)}
+                >
+                  <Filter className="h-5 w-5 mr-2" />
+                  Filters
+                  {selectedSectors.length > 0 && (
+                    <Badge className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                      {selectedSectors.length}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-              <span className="font-medium text-foreground">
-                {filteredProjects.length.toString().padStart(2, '0')} results
-              </span>
-              <span aria-hidden="true">•</span>
-              <span>Showing {Math.min(visibleCount, filteredProjects.length)} projects</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="relative flex items-center gap-1.5 text-xs sm:hidden"
-              onClick={() => setFilterDrawerOpen(true)}
-            >
-              <Filter className="h-3.5 w-3.5" />
-              Filters
-              {(filters.domains.length +
-                filters.tech.length +
-                filters.statuses.length +
-                filters.commitments.length +
-                filters.difficulties.length) > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                    {filters.domains.length +
-                      filters.tech.length +
-                      filters.statuses.length +
-                      filters.commitments.length +
-                      filters.difficulties.length}
-                  </span>
-                )}
-            </Button>
           </div>
         </section>
 
-        {/* Grid + skeletons */}
-        {loading ? (
-          <section
-            aria-label="Loading project results"
-            className="grid gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+        {/* Tab Navigation */}
+        <section className="flex items-center gap-2 border-b border-border/50 pb-4">
+          <Button
+            variant={activeTab === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-full"
+            onClick={() => handleTabChange('all')}
           >
-            {Array.from({ length: 12 }).map((_, idx) => (
-              <Card key={idx} className="flex h-full flex-col overflow-hidden rounded-lg border border-border/50 bg-card/50">
-                <Skeleton className="h-36 w-full" />
-                <div className="space-y-2 p-4">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-2/3" />
-                </div>
-                <div className="mt-auto border-t border-border/50 p-3">
-                  <Skeleton className="h-7 w-24" />
-                </div>
-              </Card>
-            ))}
+            All Projects
+          </Button>
+          <Button
+            variant={activeTab === 'trending' ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-full"
+            onClick={() => handleTabChange('trending')}
+          >
+            <TrendingUp className="h-4 w-4 mr-1.5" />
+            Trending
+          </Button>
+          <Button
+            variant={activeTab === 'categories' ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-full"
+            onClick={() => handleTabChange('categories')}
+          >
+            <Layers className="h-4 w-4 mr-1.5" />
+            Categories
+          </Button>
+          <Button
+            variant={activeTab === 'recent' ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-full"
+            onClick={() => handleTabChange('recent')}
+          >
+            <Clock className="h-4 w-4 mr-1.5" />
+            Recent
+          </Button>
+        </section>
+
+        {/* Featured Project - Only on 'all' tab */}
+        {!searchQuery && selectedSectors.length === 0 && activeTab === 'all' && (
+          <section>
+            <SectionHeader
+              icon={Star}
+              iconColor="bg-amber-500"
+              title="Featured Project"
+              subtitle="Hand-picked opportunity with high demand"
+            />
+            <FeaturedProjectCard
+              project={featuredProject}
+              onView={() => handleViewProject(featuredProject.id)}
+            />
           </section>
-        ) : filteredProjects.length === 0 ? (
-          <section className="flex flex-1 flex-col items-center justify-center gap-4 border bg-card/40 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border bg-muted">
-              <Filter className="h-6 w-6 text-muted-foreground" />
+        )}
+
+        {/* Categories Grid - Only on 'all' or 'categories' tab */}
+        {!searchQuery && selectedSectors.length === 0 && (activeTab === 'all' || activeTab === 'categories') && (
+          <section>
+            <SectionHeader
+              icon={Layers}
+              iconColor="bg-violet-500"
+              title="Browse by Category"
+              subtitle="Find projects in your area of expertise"
+            />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+              {Object.entries(projectsByCategory).map(([category, projects]) => {
+                const iconData = categoryIcons[category] || { icon: Layers, color: 'bg-primary' };
+                return (
+                  <CategoryCard
+                    key={category}
+                    name={category}
+                    count={projects.length}
+                    icon={iconData.icon}
+                    color={iconData.color}
+                    onClick={() => {
+                      setSelectedSectors([category]);
+                    }}
+                  />
+                );
+              })}
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">No projects match your filters</p>
-              <p className="text-xs text-muted-foreground">
-                Try clearing some filters or adjusting your search query.
-              </p>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={handleClearFilters}>
-              Clear filters
-            </Button>
           </section>
-        ) : (
-          <>
-            <section
-              aria-label="Project results"
-              className="grid gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-            >
-              {projectsToShow.map((project) => (
+        )}
+
+        {/* Show filtered results OR default sections */}
+        {(searchQuery || selectedSectors.length > 0) ? (
+          // Filtered Results
+          <section>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold tracking-tight">
+                  {filteredProjects.length} Project{filteredProjects.length !== 1 ? 's' : ''} Found
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {searchQuery && `Searching for "${searchQuery}"`}
+                  {searchQuery && selectedSectors.length > 0 && ' in '}
+                  {selectedSectors.length > 0 && selectedSectors.join(', ')}
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedSectors([]); }}>
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProjects.map((project, index) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  difficulty={getDifficulty(project)}
-                  onViewDetails={() => handleViewDetails(project.id)}
+                  index={index}
+                  onView={() => handleViewProject(project.id)}
                 />
               ))}
-            </section>
-
-            {visibleCount < filteredProjects.length && (
-              <div className="mt-4 flex justify-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setVisibleCount((prev) => prev + 12)}
-                >
-                  Show more projects
-                </Button>
+            </div>
+            {filteredProjects.length === 0 && (
+              <div className="text-center py-16">
+                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <Search className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No projects found</h3>
+                <p className="text-muted-foreground">Try adjusting your search or filters</p>
               </div>
             )}
+          </section>
+        ) : (
+          <>
+            {/* Trending Projects - Only on 'all' or 'trending' tab */}
+            {(activeTab === 'all' || activeTab === 'trending') && (
+              <section>
+                <SectionHeader
+                  icon={TrendingUp}
+                  iconColor="bg-emerald-500"
+                  title="Trending Now"
+                  subtitle="Projects with the most join requests this week"
+                  action={
+                    activeTab !== 'trending' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-primary"
+                        onClick={() => handleTabChange('trending')}
+                      >
+                        View all <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    )
+                  }
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                  {(activeTab === 'trending' ? trendingProjects : trendingProjects.slice(0, 5)).map((project, index) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      index={index}
+                      onView={() => handleViewProject(project.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Recently Added - Only on 'all' or 'recent' tab */}
+            {(activeTab === 'all' || activeTab === 'recent') && (
+              <section>
+                <SectionHeader
+                  icon={Clock}
+                  iconColor="bg-sky-500"
+                  title="Fresh Opportunities"
+                  subtitle="Newly posted projects looking for their first members"
+                  action={
+                    activeTab !== 'recent' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-primary"
+                        onClick={() => handleTabChange('recent')}
+                      >
+                        View all <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    )
+                  }
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                  {(activeTab === 'recent' ? recentProjects : recentProjects.slice(0, 5)).map((project, index) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      index={index}
+                      onView={() => handleViewProject(project.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Projects by Category - Only on 'all' tab */}
+            {activeTab === 'all' && Object.entries(projectsByCategory).slice(0, 3).map(([category, projects]) => (
+              <section key={category}>
+                <SectionHeader
+                  icon={categoryIcons[category]?.icon || Layers}
+                  iconColor={categoryIcons[category]?.color || 'bg-primary'}
+                  title={category}
+                  subtitle={`${projects.length} active project${projects.length !== 1 ? 's' : ''} in this domain`}
+                  action={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-primary"
+                      onClick={() => setSelectedSectors([category])}
+                    >
+                      View all <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  }
+                />
+                <DashboardCarousel>
+                  {projects.map((project) => (
+                    <div key={project.id} className="w-72 flex-shrink-0">
+                      <ProjectCard
+                        project={project}
+                        onView={() => handleViewProject(project.id)}
+                      />
+                    </div>
+                  ))}
+                </DashboardCarousel>
+              </section>
+            ))}
           </>
         )}
-      </main>
-
-      <FilterDrawer
-        open={filterDrawerOpen}
-        onOpenChange={setFilterDrawerOpen}
-        domains={allDomains}
-        techOptions={allTech}
-        value={filters}
-        onChange={setFilters}
-        onClear={handleClearFilters}
-      />
-    </div>
-  );
-}
-
-// Wrap with Suspense for useSearchParams compatibility with Next.js 13+
-function ExplorePageFallback() {
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-          <Skeleton className="h-8 w-32" />
-          <div className="flex-1">
-            <Skeleton className="mx-auto h-10 max-w-xl rounded-full" />
-          </div>
-          <Skeleton className="h-9 w-24" />
-        </div>
       </div>
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 pb-10 pt-4 sm:px-6 lg:px-8">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {Array.from({ length: 12 }).map((_, idx) => (
-            <Card key={idx} className="flex h-full flex-col overflow-hidden border bg-card">
-              <Skeleton className="h-28 w-full" />
-              <div className="space-y-2 p-3">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-full" />
-              </div>
-            </Card>
-          ))}
-        </div>
-      </main>
-    </div>
+
+      {/* Filter Sheet */}
+      <FilterSheet
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        sectors={sectors}
+        selectedSectors={selectedSectors}
+        onSectorChange={handleSectorChange}
+        onClear={() => setSelectedSectors([])}
+      />
+    </MainLayout>
   );
 }
 
+// Main Export with Suspense
 export default function ExplorePage() {
   return (
-    <Suspense fallback={<ExplorePageFallback />}>
-      <ExplorePageContent />
+    <Suspense fallback={
+      <MainLayout>
+        <div className="space-y-8">
+          <Skeleton className="h-64 w-full rounded-3xl" />
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {[...Array(10)].map((_, i) => (
+              <Skeleton key={i} className="h-80 rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      </MainLayout>
+    }>
+      <ExploreContent />
     </Suspense>
   );
 }

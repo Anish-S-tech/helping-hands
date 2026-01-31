@@ -50,7 +50,7 @@ export default function BuilderHomePage() {
     ];
 
     // Recommended projects (open projects)
-    const recommendedProjects = MOCK_PROJECTS.filter(p => p.status === 'open').slice(0, 8);
+    const recommendedProjects = MOCK_PROJECTS.filter(p => p.status === 'open').slice(0, 10);
 
     // Active conversations
     const directMessages = MOCK_ROOMS.filter(r => r.type === 'direct').slice(0, 5);
@@ -100,7 +100,7 @@ export default function BuilderHomePage() {
 
     return (
         <MainLayout>
-            <div className="max-w-[1400px] mx-auto space-y-10">
+            <div className="max-w-[1400px] mx-auto space-y-12 pb-8">
                 {/* SECTION 1: Welcome / Context */}
                 <section className="space-y-4">
                     <div className="flex items-start justify-between gap-4 flex-wrap">

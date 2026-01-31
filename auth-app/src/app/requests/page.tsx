@@ -76,7 +76,7 @@ export default function RequestsPage() {
     return (
         <TooltipProvider>
             <MainLayout>
-                <div className="max-w-[1200px] mx-auto space-y-10">
+                <div className="max-w-[1200px] mx-auto space-y-12 pb-8">
                     {/* Header */}
                     <section className="space-y-4">
                         <div className="flex items-start justify-between gap-4 flex-wrap">

@@ -1,6 +1,7 @@
 'use client';
 
 import { MainLayout } from '@/components/MainLayout';
+import { BackButton } from '@/components/BackButton';
 import { Bell, X, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,9 @@ export default function NotificationsPage() {
     return (
         <MainLayout>
             <div className="max-w-[900px] mx-auto space-y-10 pb-8">
+                {/* Back Button */}
+                <BackButton />
+
                 {/* Header */}
                 <div className="flex items-center justify-between gap-4">
                     <div className="space-y-1">

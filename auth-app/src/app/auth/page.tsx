@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { BackButton } from '@/components/BackButton';
 import { User, Building2, ArrowRight, Lock, Mail, Sparkles, Users, Rocket, Shield, Check } from 'lucide-react';
 
 type RoleChoice = 'builder' | 'founder' | null;
@@ -158,6 +159,11 @@ export default function AuthPage() {
         {/* RIGHT PANEL - Authentication */}
         <div className="flex w-full flex-col justify-center p-6 sm:p-8 lg:w-1/2 lg:p-12 xl:p-16">
           <div className="mx-auto w-full max-w-md">
+            {/* Back Button */}
+            <div className="mb-6">
+              <BackButton />
+            </div>
+
             {/* Mobile Logo */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">

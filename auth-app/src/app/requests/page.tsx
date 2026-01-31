@@ -20,6 +20,7 @@ import {
 } from '@/data/mock-data';
 import { MainLayout } from '@/components/MainLayout';
 import { SectionHeader } from '@/components/SectionHeader';
+import { BackButton } from '@/components/BackButton';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -79,6 +80,7 @@ export default function RequestsPage() {
                 <div className="max-w-[1200px] mx-auto space-y-12 pb-8">
                     {/* Header */}
                     <section className="space-y-4">
+                        <BackButton />
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-3">

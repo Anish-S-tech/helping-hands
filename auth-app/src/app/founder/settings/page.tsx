@@ -19,6 +19,7 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import { MainLayout } from '@/components/MainLayout';
+import { BackButton } from '@/components/BackButton';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -113,6 +114,7 @@ export default function FounderSettingsPage() {
             <div className="max-w-[1200px] mx-auto space-y-8">
                 {/* Header */}
                 <section className="space-y-4">
+                    <BackButton />
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div className="space-y-2">
                             <div className="flex items-center gap-3">

@@ -23,7 +23,13 @@ export function BackButton({
             variant={variant}
             size="sm"
             onClick={() => router.back()}
-            className={cn('gap-2', className)}
+            className={cn(
+                'gap-2 transition-all duration-300',
+                'hover:gap-3 hover:-translate-x-1',
+                'hover:bg-primary/10 hover:text-primary hover:shadow-sm',
+                'active:scale-95',
+                className
+            )}
         >
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">{label}</span>

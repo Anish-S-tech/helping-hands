@@ -7,7 +7,7 @@ export default function BuilderLoginRedirect() {
     const router = useRouter();
 
     useEffect(() => {
-        router.replace('/auth');
+        router.replace('/auth?role=builder');
     }, [router]);
 
     return (

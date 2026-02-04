@@ -1,21 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { AlertCircle, X } from 'lucide-react';
 import Link from 'next/link';
 
 export function VerificationAlert() {
     const { profile } = useAuth();
-    const [dismissed, setDismissed] = useState(false);
-
-    useEffect(() => {
-        // Check if user has dismissed this alert before
-        const isDismissed = localStorage.getItem('verificationAlertDismissed');
-        if (isDismissed) {
-            setDismissed(true);
-        }
-    }, []);
+    // Initialize from localStorage using lazy initialization to avoid setState in effect
+    const [dismissed, setDismissed] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return localStorage.getItem('verificationAlertDismissed') === 'true';
+    });
 
     const handleDismiss = () => {
         setDismissed(true);

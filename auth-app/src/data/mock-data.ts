@@ -35,6 +35,7 @@ export interface Project {
     last_activity: string;
     open_roles: string[];
     applications_pending: number;
+    imageUrl?: string;
     founder: {
         id: string;
         name: string;
@@ -350,6 +351,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-05T08:30:00Z',
         open_roles: ['Backend Engineer', 'ML Engineer'],
         applications_pending: 3,
+        imageUrl: '/projects/ai.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -368,6 +370,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-04T16:45:00Z',
         open_roles: [],
         applications_pending: 0,
+        imageUrl: '/projects/health.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -386,6 +389,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-03T14:20:00Z',
         open_roles: ['Frontend Developer', 'DevOps Engineer'],
         applications_pending: 2,
+        imageUrl: '/projects/logistics.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -404,6 +408,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-05T07:15:00Z',
         open_roles: ['Smart Contract Auditor', 'Frontend Lead', 'UX Designer'],
         applications_pending: 5,
+        imageUrl: '/projects/blockchain.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -422,6 +427,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2025-12-20T10:00:00Z',
         open_roles: [],
         applications_pending: 0,
+        imageUrl: '/projects/education.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -440,6 +446,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-04T22:30:00Z',
         open_roles: ['Security Researcher'],
         applications_pending: 1,
+        imageUrl: '/projects/security.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -458,6 +465,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-05T06:00:00Z',
         open_roles: ['Full Stack Developer'],
         applications_pending: 4,
+        imageUrl: '/projects/finance.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -476,6 +484,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-04T18:00:00Z',
         open_roles: ['Backend Developer', 'DevOps'],
         applications_pending: 2,
+        imageUrl: '/projects/logistics.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -494,6 +503,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-20T14:30:00Z',
         open_roles: ['Backend Developer', 'DevOps Engineer', 'Product Designer'],
         applications_pending: 7,
+        imageUrl: '/projects/ecommerce.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -512,6 +522,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-18T09:45:00Z',
         open_roles: ['ML Engineer', 'Frontend Developer'],
         applications_pending: 3,
+        imageUrl: '/projects/ai.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -530,6 +541,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-19T16:20:00Z',
         open_roles: ['Senior Frontend Engineer'],
         applications_pending: 2,
+        imageUrl: '/projects/logistics.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -548,6 +560,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-21T10:30:00Z',
         open_roles: ['Mobile Developer', 'ML Engineer'],
         applications_pending: 5,
+        imageUrl: '/projects/health.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -566,6 +579,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-17T11:45:00Z',
         open_roles: ['Smart Contract Developer', 'Product Manager'],
         applications_pending: 4,
+        imageUrl: '/projects/blockchain.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -584,6 +598,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-20T08:15:00Z',
         open_roles: ['QA Engineer', 'Content Strategist'],
         applications_pending: 1,
+        imageUrl: '/projects/education.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -602,6 +617,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-16T15:30:00Z',
         open_roles: ['Backend Engineer'],
         applications_pending: 2,
+        imageUrl: '/projects/security.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -620,6 +636,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-19T12:00:00Z',
         open_roles: ['Full Stack Developer', 'UI Designer'],
         applications_pending: 6,
+        imageUrl: '/projects/finance.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     // Additional projects to fill grids
@@ -639,6 +656,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-22T14:00:00Z',
         open_roles: ['ML Engineer', 'Security Analyst'],
         applications_pending: 4,
+        imageUrl: '/projects/security.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -657,6 +675,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-25T11:30:00Z',
         open_roles: ['Backend Developer', 'DevOps Engineer'],
         applications_pending: 3,
+        imageUrl: '/projects/security.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -675,6 +694,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-20T16:45:00Z',
         open_roles: ['ML Engineer', 'Frontend Developer'],
         applications_pending: 5,
+        imageUrl: '/projects/security.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -693,6 +713,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-18T09:20:00Z',
         open_roles: ['Smart Contract Auditor'],
         applications_pending: 2,
+        imageUrl: '/projects/security.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -711,6 +732,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-24T10:00:00Z',
         open_roles: ['ML Engineer', 'Backend Developer'],
         applications_pending: 8,
+        imageUrl: '/projects/finance.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -729,6 +751,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-23T15:00:00Z',
         open_roles: ['Data Scientist', 'Mobile Developer'],
         applications_pending: 4,
+        imageUrl: '/projects/finance.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -747,6 +770,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-21T12:30:00Z',
         open_roles: ['ML Engineer', 'UX Designer'],
         applications_pending: 5,
+        imageUrl: '/projects/education.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -765,6 +789,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-22T18:00:00Z',
         open_roles: ['Frontend Lead', 'Backend Developer'],
         applications_pending: 3,
+        imageUrl: '/projects/education.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -783,6 +808,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-19T14:30:00Z',
         open_roles: ['ML Engineer', 'Mobile Developer'],
         applications_pending: 6,
+        imageUrl: '/projects/health.png',
         founder: { id: 'f2', name: 'Linda Gao' }
     },
     {
@@ -801,6 +827,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-18T11:00:00Z',
         open_roles: ['Security Engineer'],
         applications_pending: 2,
+        imageUrl: '/projects/health.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -819,6 +846,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-23T09:45:00Z',
         open_roles: ['Smart Contract Dev', 'Frontend Developer'],
         applications_pending: 4,
+        imageUrl: '/projects/blockchain.png',
         founder: { id: 'f3', name: 'Samir Al-Fayed' }
     },
     {
@@ -837,6 +865,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-21T16:30:00Z',
         open_roles: ['DeFi Strategist', 'Security Auditor'],
         applications_pending: 7,
+        imageUrl: '/projects/blockchain.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -855,6 +884,7 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-24T08:00:00Z',
         open_roles: ['Senior Frontend Engineer'],
         applications_pending: 3,
+        imageUrl: '/projects/logistics.png',
         founder: { id: 'f1', name: 'David Hoffman' }
     },
     {
@@ -873,8 +903,9 @@ export const MOCK_PROJECTS: Project[] = [
         last_activity: '2026-01-22T10:15:00Z',
         open_roles: ['Data Engineer', 'Frontend Developer'],
         applications_pending: 5,
+        imageUrl: '/projects/logistics.png',
         founder: { id: 'f2', name: 'Linda Gao' }
-    }
+    },
 ];
 
 // User applications (for builder dashboard)
@@ -1044,7 +1075,8 @@ export const MOCK_ACTIVE_PROJECTS = [
         status: 'active' as const,
         phase: 'active' as const,
         last_activity: '2026-01-05T08:30:00Z',
-        founder_name: 'David Hoffman'
+        founder_name: 'David Hoffman',
+        imageUrl: '/projects/ai.png'
     },
     {
         id: 'ap2',
@@ -1054,7 +1086,8 @@ export const MOCK_ACTIVE_PROJECTS = [
         status: 'active' as const,
         phase: 'active' as const,
         last_activity: '2026-01-04T22:30:00Z',
-        founder_name: 'Samir Al-Fayed'
+        founder_name: 'Samir Al-Fayed',
+        imageUrl: '/projects/security.png'
     },
     {
         id: 'ap3',
@@ -1064,7 +1097,8 @@ export const MOCK_ACTIVE_PROJECTS = [
         status: 'archived' as const,
         phase: 'completed' as const,
         last_activity: '2025-12-20T10:00:00Z',
-        founder_name: 'David Hoffman'
+        founder_name: 'David Hoffman',
+        imageUrl: '/projects/education.png'
     }
 ];
 

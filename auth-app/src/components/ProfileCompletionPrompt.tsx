@@ -1,24 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, X } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export function ProfileCompletionPrompt() {
     const { profile } = useAuth();
-    const [dismissed, setDismissed] = useState(false);
-
-    useEffect(() => {
+    // Initialize dismissed state from localStorage using lazy initialization
+    const [dismissed, setDismissed] = useState(() => {
+        if (typeof window === 'undefined') return false;
         const dismissedTime = localStorage.getItem('profilePromptDismissed');
         if (dismissedTime) {
-            // Auto-show again after 7 days
             const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-            if (daysSinceDismissed < 7) {
-                setDismissed(true);
-            }
+            return daysSinceDismissed < 7;
         }
-    }, []);
+        return false;
+    });
 
     const handleDismiss = () => {
         setDismissed(true);

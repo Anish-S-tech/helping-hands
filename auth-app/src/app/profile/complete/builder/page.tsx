@@ -319,34 +319,34 @@ export default function BuilderProfileCompletePage() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-6 animate-fade-in">
             <div className="w-full max-w-lg space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
                             <Package className="h-4 w-4 text-primary-foreground" />
                         </div>
                     </Link>
-                    <Badge variant="secondary" className="text-xs">Builder Profile</Badge>
+                    <Badge variant="secondary" className="text-xs bg-primary/10 border-primary/20 text-primary">Builder Profile</Badge>
                 </div>
 
                 {/* Progress */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium">Step {currentStepIndex + 1} of {steps.length}</span>
+                        <span className="font-semibold">Step {currentStepIndex + 1} of {steps.length}</span>
                         <span className="text-muted-foreground">{Math.round(progress)}% complete</span>
                     </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-2 bg-muted rounded-full overflow-hidden shadow-inner">
                         <div
-                            className="h-full bg-primary transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 shadow-sm"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
                 </div>
 
                 {/* Main Card */}
-                <div className="p-6 bg-card border rounded-xl space-y-6">
+                <div className="p-6 bg-card/80 backdrop-blur-sm border border-border/60 rounded-xl shadow-xl space-y-6">
                     {error && (
                         <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
                             {error}
@@ -357,14 +357,14 @@ export default function BuilderProfileCompletePage() {
                         {renderStepContent()}
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t">
+                    <div className="flex gap-3 pt-4 border-t border-border/50">
                         {currentStepIndex > 0 && (
-                            <Button variant="outline" onClick={handleBack} className="flex-1">
+                            <Button variant="outline" onClick={handleBack} className="flex-1 hover:bg-primary/5 hover:border-primary/30 transition-all">
                                 <ChevronLeft className="w-4 h-4 mr-2" /> Back
                             </Button>
                         )}
                         {currentStepIndex === steps.length - 1 ? (
-                            <Button onClick={handleComplete} disabled={loading} className="flex-[2]">
+                            <Button onClick={handleComplete} disabled={loading} className="flex-[2] shadow-md hover:shadow-lg transition-all">
                                 {loading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
@@ -372,7 +372,7 @@ export default function BuilderProfileCompletePage() {
                                 )}
                             </Button>
                         ) : (
-                            <Button onClick={handleNext} className="flex-[2]">
+                            <Button onClick={handleNext} className="flex-[2] shadow-md hover:shadow-lg transition-all">
                                 Next <ChevronRight className="ml-2 w-4 h-4" />
                             </Button>
                         )}
@@ -381,7 +381,7 @@ export default function BuilderProfileCompletePage() {
 
                 <button
                     onClick={() => router.push('/dashboard/builder')}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors block mx-auto"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors block mx-auto font-medium hover:underline"
                 >
                     Skip for now - complete later in settings
                 </button>

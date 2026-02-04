@@ -18,26 +18,29 @@ export function AnnouncementCard({
 }: AnnouncementCardProps) {
     return (
         <div className={cn(
-            'relative border-l-2 border-primary/50 bg-primary/5 rounded-r-lg',
-            compact ? 'p-3' : 'p-4',
+            'group relative overflow-hidden rounded-xl transition-all duration-300',
+            'border-l-4 border-primary/60 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent',
+            'hover:border-primary hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5',
+            'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100',
+            compact ? 'p-3.5' : 'p-5',
             className
         )}>
             {announcement.is_pinned && (
-                <div className="absolute top-2 right-2">
-                    <Pin className="h-3 w-3 text-primary/50 rotate-45" />
+                <div className="absolute top-3 right-3 h-7 w-7 rounded-lg bg-primary/20 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                    <Pin className="h-3.5 w-3.5 text-primary rotate-45" />
                 </div>
             )}
 
-            <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-semibold">{announcement.author_name}</span>
+            <div className="relative z-10 flex items-center gap-2.5 mb-3">
+                <span className="text-sm font-bold text-foreground">{announcement.author_name}</span>
                 <ProjectRoleBadge role={announcement.author_role} showIcon={false} size="sm" />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground/70 font-medium">
                     {formatRelativeTime(announcement.created_at)}
                 </span>
             </div>
 
             <p className={cn(
-                'text-muted-foreground leading-relaxed',
+                'relative z-10 text-muted-foreground leading-relaxed',
                 compact ? 'text-xs' : 'text-sm'
             )}>
                 {announcement.content}
@@ -87,13 +90,18 @@ export function AnnouncementList({
     }
 
     return (
-        <div className={cn('space-y-3', className)}>
+        <div className={cn('space-y-4', className)}>
             {sorted.map((announcement, index) => (
-                <AnnouncementCard
+                <div
                     key={announcement.id}
-                    announcement={announcement}
-                    compact={compact}
-                />
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 80}ms` }}
+                >
+                    <AnnouncementCard
+                        announcement={announcement}
+                        compact={compact}
+                    />
+                </div>
             ))}
         </div>
     );

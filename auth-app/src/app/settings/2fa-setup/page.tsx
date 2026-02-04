@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
@@ -23,20 +23,8 @@ export default function TwoFASetupPage() {
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        if (!authLoading) {
-            if (!profile) {
-                router.push('/login');
-            } else if (profile.two_fa_enabled) {
-                toast.info('2FA is already enabled');
-                router.push('/settings');
-            } else {
-                initializeSetup();
-            }
-        }
-    }, [profile, authLoading, router]);
-
-    const initializeSetup = async () => {
+    // Define initializeSetup with useCallback before using it in useEffect
+    const initializeSetup = useCallback(async () => {
         setInitializing(true);
         const result = await generate2FASecret();
 
@@ -50,7 +38,20 @@ export default function TwoFASetupPage() {
         }
 
         setInitializing(false);
-    };
+    }, [generate2FASecret]);
+
+    useEffect(() => {
+        if (!authLoading) {
+            if (!profile) {
+                router.push('/login');
+            } else if (profile.two_fa_enabled) {
+                toast.info('2FA is already enabled');
+                router.push('/settings');
+            } else {
+                initializeSetup();
+            }
+        }
+    }, [profile, authLoading, router, initializeSetup]);
 
     const handleCopySecret = () => {
         navigator.clipboard.writeText(secret);

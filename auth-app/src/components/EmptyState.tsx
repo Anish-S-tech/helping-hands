@@ -21,23 +21,25 @@ export function EmptyState({
     return (
         <div
             className={cn(
-                'flex flex-col items-center justify-center text-center p-12',
+                'flex flex-col items-center justify-center text-center p-12 rounded-xl border border-dashed border-border/50 bg-gradient-to-b from-background to-muted/20',
                 className
             )}
         >
             {icon && (
-                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4">
-                    {icon}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 ring-1 ring-primary/20 backdrop-blur-sm">
+                    <div className="text-primary/70">
+                        {icon}
+                    </div>
                 </div>
             )}
 
-            <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
+            <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
 
             {description && (
-                <p className="text-slate-400 max-w-sm mb-6">{description}</p>
+                <p className="text-muted-foreground max-w-sm mb-6 leading-relaxed">{description}</p>
             )}
 
-            {action && <div>{action}</div>}
+            {action && <div className="animate-fade-in">{action}</div>}
         </div>
     );
 }

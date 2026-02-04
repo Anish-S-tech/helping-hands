@@ -7,7 +7,7 @@ export default function FounderLoginRedirect() {
     const router = useRouter();
 
     useEffect(() => {
-        router.replace('/auth');
+        router.replace('/auth?role=founder');
     }, [router]);
 
     return (

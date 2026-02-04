@@ -29,8 +29,8 @@ export const canApplyToProject = (profile: Profile | null): PermissionCheck => {
         return { allowed: false, reason: 'You must be logged in to apply to projects' };
     }
 
-    if (profile.role_type !== 'user') {
-        return { allowed: false, reason: 'Only users can apply to projects. Founders manage their own projects.' };
+    if (profile.role_type !== 'builder') {
+        return { allowed: false, reason: 'Only builders can apply to projects. Founders manage their own projects.' };
     }
 
     if (!profile.email_verified) {

@@ -9,7 +9,7 @@ export interface Profile {
   user_id: string;
   email: string;
   name: string | null;
-  role_type: 'user' | 'founder';
+  role_type: 'builder' | 'founder';
   avatar_url: string | null;
   bio: string | null;
   experience_level: 'fresher' | 'experienced' | null;
@@ -31,8 +31,48 @@ export interface FounderDetails {
   about_company: string | null;
 }
 
+// Minimal User type for dummy authentication
+// This matches the subset of Supabase User properties we actually use
+type DummyUser = Pick<User, 'id' | 'email' | 'app_metadata' | 'user_metadata' | 'aud' | 'created_at'>;
+
 // Create a dummy Supabase client for SSR/build time
 const createDummyClient = (): SupabaseClient => {
+  const mockQueryBuilder = {
+    select: () => mockQueryBuilder,
+    eq: () => mockQueryBuilder,
+    neq: () => mockQueryBuilder,
+    gt: () => mockQueryBuilder,
+    lt: () => mockQueryBuilder,
+    gte: () => mockQueryBuilder,
+    lte: () => mockQueryBuilder,
+    like: () => mockQueryBuilder,
+    ilike: () => mockQueryBuilder,
+    is: () => mockQueryBuilder,
+    in: () => mockQueryBuilder,
+    contains: () => mockQueryBuilder,
+    containedBy: () => mockQueryBuilder,
+    rangeGt: () => mockQueryBuilder,
+    rangeGte: () => mockQueryBuilder,
+    rangeLt: () => mockQueryBuilder,
+    rangeLte: () => mockQueryBuilder,
+    rangeAdjacent: () => mockQueryBuilder,
+    overlaps: () => mockQueryBuilder,
+    match: () => mockQueryBuilder,
+    not: () => mockQueryBuilder,
+    or: () => mockQueryBuilder,
+    filter: () => mockQueryBuilder,
+    order: () => mockQueryBuilder,
+    limit: () => mockQueryBuilder,
+    offset: () => mockQueryBuilder,
+    single: async () => ({ data: null, error: null }),
+    maybeSingle: async () => ({ data: null, error: null }),
+    then: (onfulfilled: any) => Promise.resolve({ data: null, error: null }).then(onfulfilled),
+    insert: () => mockQueryBuilder,
+    update: () => mockQueryBuilder,
+    upsert: () => mockQueryBuilder,
+    delete: () => mockQueryBuilder,
+  };
+
   return {
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
@@ -43,11 +83,7 @@ const createDummyClient = (): SupabaseClient => {
       signOut: async () => ({ error: null }),
       resetPasswordForEmail: async () => ({ data: {}, error: null }),
     },
-    from: () => ({
-      select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }), order: () => ({ limit: () => ({ single: async () => ({ data: null, error: null }) }) }) }) }),
-      insert: async () => ({ data: null, error: null }),
-      update: () => ({ eq: async () => ({ data: null, error: null }) }),
-    }),
+    from: () => mockQueryBuilder,
   } as unknown as SupabaseClient;
 };
 
@@ -70,15 +106,15 @@ function getSupabaseClient(): SupabaseClient {
 
 interface AuthContextType {
   supabase: SupabaseClient;
-  user: User | null;
+  user: User | DummyUser | null;
   session: Session | null;
   profile: Profile | null;
   founderDetails: FounderDetails | null;
   loading: boolean;
   isFounder: boolean;
   profileComplete: boolean;
-  signUp: (email: string, password: string, roleType: 'user' | 'founder') => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string, roleType?: 'user' | 'founder') => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, roleType: 'builder' | 'founder') => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, roleType?: 'builder' | 'founder') => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithGitHub: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -97,7 +133,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => getSupabaseClient(), []);
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | DummyUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [founderDetails, setFounderDetails] = useState<FounderDetails | null>(null);
@@ -144,12 +180,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // 1. Check for real Supabase session
         const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
 
         if (session?.user) {
+          setSession(session);
+          setUser(session.user);
           await fetchProfile(session.user.id);
+        } else if (typeof window !== 'undefined') {
+          // 2. Fallback to dummy session if persisted
+          const dummyUser = localStorage.getItem('dummy_user');
+          const dummyProfile = localStorage.getItem('dummy_profile');
+
+          if (dummyUser && dummyProfile) {
+            console.log('Auth: Restoring dummy session');
+            setUser(JSON.parse(dummyUser));
+            setProfile(JSON.parse(dummyProfile));
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -183,17 +230,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Sign up with email (Dummy)
-  const signUp = async (email: string, password: string, roleType: 'user' | 'founder') => {
+  const signUp = async (email: string, password: string, roleType: 'builder' | 'founder') => {
     // Generate dummy user and profile
     const dummyId = 'dummy-user-id';
-    const dummyUser: User = {
+    const dummyUser: DummyUser = {
       id: dummyId,
       email,
       app_metadata: {},
       user_metadata: { role_type: roleType },
       aud: 'authenticated',
       created_at: new Date().toISOString(),
-    } as any;
+    };
 
     const dummyProfile: Profile = {
       id: 'dummy-profile-id',
@@ -216,21 +263,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(dummyUser);
     setProfile(dummyProfile);
+
+    // Persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dummy_user', JSON.stringify(dummyUser));
+      localStorage.setItem('dummy_profile', JSON.stringify(dummyProfile));
+      localStorage.setItem('dummy_auth', 'true');
+    }
 
     return { error: null };
   };
 
   // Sign in with email (Dummy)
-  const signIn = async (email: string, password: string, roleType: 'user' | 'founder' = 'user') => {
+  const signIn = async (email: string, password: string, roleType: 'builder' | 'founder' = 'builder') => {
     const dummyId = 'dummy-user-id';
-    const dummyUser: User = {
+    const dummyUser: DummyUser = {
       id: dummyId,
       email,
       app_metadata: {},
       user_metadata: { role_type: roleType },
       aud: 'authenticated',
       created_at: new Date().toISOString(),
-    } as any;
+    };
 
     const dummyProfile: Profile = {
       id: 'dummy-profile-id',
@@ -253,6 +307,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(dummyUser);
     setProfile(dummyProfile);
+
+    // Persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dummy_user', JSON.stringify(dummyUser));
+      localStorage.setItem('dummy_profile', JSON.stringify(dummyProfile));
+      localStorage.setItem('dummy_auth', 'true');
+    }
 
     return { error: null };
   };
@@ -281,10 +342,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sign out
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("Sign out error:", e);
+    }
+
+    // 1. Clear Context State
     setUser(null);
     setProfile(null);
     setFounderDetails(null);
+
+    // 2. Clear Storage
+    if (typeof window !== 'undefined') {
+      localStorage.clear(); // NUKE EVERYTHING
+      sessionStorage.clear();
+    }
+
+    // 3. Force Hard Redirect
+    window.location.href = '/login';
   };
 
   // Update profile
@@ -323,9 +399,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (insertError) return { error: insertError as Error };
 
-    // In production, send actual email/SMS here
-    // For now, log to console
-    console.log(`OTP for ${type}: ${otp}`);
+    // TODO: In production, integrate with email/SMS service (SendGrid, Twilio, etc.)
+    // For development, OTP is stored in database and can be retrieved for testing
+    if (process.env.NODE_ENV === 'development') {
+      // Only log in development mode, never in production
+      console.warn('[DEV ONLY] OTP generated:', { type, code: otp });
+    }
 
     return { error: null };
   };

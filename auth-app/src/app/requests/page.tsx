@@ -47,7 +47,7 @@ export default function RequestsPage() {
     useEffect(() => {
         if (authLoading) return;
         // Redirect builders to their home
-        if (profile && profile.role_type === 'user') {
+        if (profile && profile.role_type === 'builder') {
             router.push('/builder/home');
         }
     }, [profile, authLoading, router]);

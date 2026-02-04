@@ -100,198 +100,261 @@ export default function BuilderHomePage() {
 
     return (
         <MainLayout>
-            <div className="max-w-[1400px] mx-auto space-y-12 pb-8">
-                {/* SECTION 1: Welcome / Context */}
-                <section className="space-y-4">
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-3xl font-bold tracking-tight">
-                                    Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}
-                                </h1>
-                                <Badge variant="secondary">Builder</Badge>
-                            </div>
-                            <p className="text-muted-foreground">
-                                Discover projects that match your skills and contribute to innovative ideas
+            <div className="max-w-[1400px] mx-auto space-y-10 pb-12 px-4 md:px-6">
+                {/* SECTION 1: Welcome / Quick Stats */}
+                <div className="space-y-8 animate-fade-in stagger-1">
+                    <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/40">
+                        <div className="space-y-1.5">
+                            <h1 className="text-4xl font-extrabold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/50 bg-clip-text">
+                                Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}
+                            </h1>
+                            <p className="text-muted-foreground flex items-center gap-2 font-medium">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+                                Your contribution portfolio is 85% complete.
                             </p>
                         </div>
                         <div className="flex gap-3">
-                            <Button variant="outline" asChild>
+                            <Button variant="outline" size="sm" className="h-10 px-4 hover:bg-muted/50" asChild>
                                 <Link href="/profile/edit">
                                     <Edit className="mr-2 h-4 w-4" />
-                                    Edit Profile
+                                    Portfolio
                                 </Link>
                             </Button>
-                            <Button asChild>
+                            <Button size="sm" className="h-10 px-6 font-bold shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 active:scale-95" asChild>
                                 <Link href="/explore">
                                     <Sparkles className="mr-2 h-4 w-4" />
-                                    Browse Projects
+                                    Find Projects
                                 </Link>
                             </Button>
                         </div>
+                    </section>
+
+                    {/* Stats Overview */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in stagger-2">
+                        <StatCard
+                            icon={Briefcase}
+                            value={activeProjects.length}
+                            label="Active Projects"
+                            highlight
+                        />
+                        <StatCard
+                            icon={TrendingUp}
+                            value="4.8"
+                            label="Portfolio Rating"
+                            trend={{ value: 12, isPositive: true }}
+                        />
+                        <StatCard
+                            icon={MessageSquare}
+                            value={unreadChats.length}
+                            label="New Messages"
+                            href="/chat"
+                            iconColor="text-emerald-500"
+                        />
+                        <StatCard
+                            icon={Clock}
+                            value="2"
+                            label="Waitlist Apps"
+                            iconColor="text-amber-500"
+                        />
                     </div>
-                </section>
+                </div>
 
-                {/* SECTION 2: Recommended Projects */}
-                <section className="space-y-4">
-                    <SectionHeader
-                        title="Recommended for You"
-                        subtitle="Projects matching your skills and interests"
-                        badge={{ label: `${recommendedProjects.length} projects`, variant: "secondary" }}
-                        action={{ label: "View All", href: "/explore" }}
-                    />
-                    <DashboardCarousel showArrows>
-                        {recommendedProjects.map((project) => (
-                            <ProjectCard
-                                key={project.id}
-                                id={project.id}
-                                title={project.title}
-                                vision={project.vision}
-                                sector={project.sector}
-                                tags={project.skills_needed}
-                                phase={project.phase}
-                                memberCount={project.member_count}
-                                teamSize={project.team_size_needed}
-                                founderName={project.founder.name}
-                                lastActivity={formatRelativeTime(project.last_activity)}
-                                variant="expanded"
+                <div className="grid lg:grid-cols-3 gap-10">
+                    {/* MAIN COLUMN (2/3) */}
+                    <div className="lg:col-span-2 space-y-12 animate-fade-in stagger-3">
+                        {/* SECTION 2: Recommended Projects */}
+                        <section className="space-y-6">
+                            <SectionHeader
+                                title="Recommended for You"
+                                subtitle="Top picks based on your skill graph"
+                                badge={{ label: "For You", variant: "secondary" }}
+                                action={{ label: "View All", href: "/explore" }}
+                                className="px-1"
                             />
-                        ))}
-                    </DashboardCarousel>
-                </section>
+                            <div className="relative group">
+                                <div className="absolute -inset-2 bg-gradient-to-r from-primary/5 to-transparent rounded-3xl blur-xl opacity-0 transition-opacity group-hover:opacity-100" />
+                                <DashboardCarousel showArrows className="relative pb-4">
+                                    {recommendedProjects.map((project) => (
+                                        <div key={project.id} className="min-w-[320px] max-w-[320px] px-1">
+                                            <ProjectCard
+                                                {...project}
+                                                id={project.id}
+                                                tags={project.skills_needed}
+                                                founderName={project.founder.name}
+                                                lastActivity={formatRelativeTime(project.last_activity)}
+                                                variant="default"
+                                            />
+                                        </div>
+                                    ))}
+                                </DashboardCarousel>
+                            </div>
+                        </section>
 
-                {/* SECTION 3: Active Contributions */}
-                <section className="space-y-4">
-                    <SectionHeader
-                        title="Your Contributions"
-                        subtitle="Projects you're actively working on"
-                    />
-                    <div className="grid lg:grid-cols-2 gap-6">
-                        {/* Active Projects */}
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                                Active Projects
-                            </h3>
-                            {activeProjects.length === 0 ? (
-                                <div className="text-center py-12 border border-dashed border-border/50 rounded-lg">
-                                    <Briefcase className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                    <p className="text-sm text-muted-foreground mb-3">No active projects yet</p>
-                                    <Button variant="outline" size="sm" asChild>
-                                        <Link href="/explore">Find Projects</Link>
-                                    </Button>
+                        {/* SECTION 3: Skill Filter */}
+                        <section className="space-y-6 p-8 rounded-3xl bg-card border border-border/40 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+                            <SectionHeader
+                                title="Master Your Stack"
+                                subtitle="Discover opportunities to refine your expertise"
+                                icon={TrendingUp}
+                            />
+                            <FilterChips
+                                chips={skillChips}
+                                activeChips={activeSkills}
+                                onToggle={handleSkillToggle}
+                                variant="skill"
+                            />
+                        </section>
+                    </div>
+
+                    {/* SIDEBAR COLUMN (1/3) */}
+                    <div className="space-y-10 animate-fade-in stagger-4">
+                        {/* Portfolio Goals / Progress */}
+                        <section className="p-6 rounded-2xl border border-primary/20 bg-primary/5 space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                    <TrendingUp className="h-5 w-5" />
                                 </div>
-                            ) : (
+                                <div>
+                                    <h4 className="text-sm font-bold">Goal Progress</h4>
+                                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Top Rated Builder</p>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-[11px] font-bold">
+                                    <span>XP to Level 5</span>
+                                    <span>850 / 1000</span>
+                                </div>
+                                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-primary rounded-full w-[85%] shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="sm" className="w-full text-[10px] font-bold h-8 hover:bg-primary/10 text-primary">
+                                VIEW ACHIEVEMENTS
+                            </Button>
+                        </section>
+
+                        {/* Active Contributions Sidebar */}
+                        <section className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground/50">
+                                    Active Missions
+                                </h3>
+                                <Badge variant="secondary" className="px-1.5 py-0 text-[9px] font-bold bg-muted/50">
+                                    {activeProjects.length}
+                                </Badge>
+                            </div>
+                            <div className="space-y-3">
+                                {activeProjects.length === 0 ? (
+                                    <div className="text-center py-10 border border-dashed border-border/40 rounded-2xl bg-muted/5">
+                                        <Briefcase className="h-8 w-8 mx-auto mb-3 text-muted-foreground opacity-20" />
+                                        <p className="text-[11px] font-semibold text-muted-foreground mb-4">No active missions</p>
+                                        <Button variant="outline" size="sm" className="text-[10px] h-8 px-4 font-bold border-dashed" asChild>
+                                            <Link href="/explore">Deploy Your Skills</Link>
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    activeProjects.map((project) => (
+                                        <Link key={project.id} href={`/projects/${project.project_id}`} className="block group">
+                                            <div className="p-4 rounded-xl border border-border/40 bg-card hover:border-primary/40 transition-all hover:shadow-md hover:bg-card/80">
+                                                <div className="flex justify-between items-start mb-2 gap-2">
+                                                    <h4 className="text-sm font-bold truncate group-hover:text-primary transition-colors leading-tight">{project.project_title}</h4>
+                                                    <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1.5" />
+                                                </div>
+                                                <div className="flex items-center justify-between text-[10px] font-medium text-muted-foreground">
+                                                    <span className="truncate max-w-[120px]">{project.role}</span>
+                                                    <span className="tabular-nums">{formatRelativeTime(project.last_activity)}</span>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
+                        {/* Messages Mini Sidebar */}
+                        <section className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground/50">
+                                    Direct Intel
+                                </h3>
+                                <Link href="/chat" className="text-[10px] font-extrabold text-primary hover:text-primary/80 transition-colors">
+                                    VIEW INBOX
+                                </Link>
+                            </div>
+                            <div className="space-y-2">
+                                {directMessages.slice(0, 3).map((chat) => (
+                                    <Link key={chat.id} href={`/chat/${chat.id}`} className="block">
+                                        <div className={cn(
+                                            "flex items-center gap-3 p-3 rounded-xl border transition-all hover:shadow-sm",
+                                            chat.unread_count > 0
+                                                ? "border-primary/30 bg-primary/5"
+                                                : "border-border/30 bg-card/50 hover:bg-card hover:border-border/60"
+                                        )}>
+                                            <div className="relative">
+                                                <Avatar className="h-10 w-10 border border-border/50">
+                                                    <AvatarFallback className="text-[10px] font-bold bg-muted uppercase text-muted-foreground">
+                                                        {chat.name.substring(0, 2)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                {chat.unread_count > 0 && (
+                                                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background animate-pulse" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center mb-0.5">
+                                                    <p className={cn("text-xs font-bold truncate", chat.unread_count > 0 ? "text-foreground" : "text-foreground/90")}>{chat.name}</p>
+                                                    <span className="text-[9px] text-muted-foreground/60 tabular-nums">2m</span>
+                                                </div>
+                                                <p className="text-[10px] text-muted-foreground truncate opacity-70 italic font-medium">
+                                                    "{chat.last_message}"
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Important Alerts */}
+                        {alerts.length > 0 && (
+                            <section className="space-y-4">
+                                <h3 className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground/50 px-1">
+                                    Alert Signals
+                                </h3>
                                 <div className="space-y-3">
-                                    {activeProjects.map((project) => (
-                                        <ProjectCard
-                                            key={project.id}
-                                            id={project.project_id}
-                                            title={project.project_title}
-                                            description={`Role: ${project.role}`}
-                                            phase={project.phase as ProjectPhase}
-                                            lastActivity={formatRelativeTime(project.last_activity)}
-                                            variant="compact"
-                                            showActions={false}
-                                        />
+                                    {alerts.map((alert) => (
+                                        <div
+                                            key={alert.id}
+                                            className="p-5 rounded-2xl border border-amber-500/20 bg-amber-500/5 relative group overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-amber-500/40" />
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => dismissAlert(alert.id)}
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                            <div className="flex items-start gap-4">
+                                                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+                                                    <AlertTriangle className="h-4 w-4" />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <p className="text-[11px] font-semibold leading-relaxed text-amber-200/90">{alert.message}</p>
+                                                    <Button variant="outline" size="sm" className="h-8 text-[10px] px-4 font-bold border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200" asChild>
+                                                        <Link href={alert.action}>{alert.actionLabel}</Link>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Pending Applications */}
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                                Pending Applications
-                            </h3>
-                            <div className="text-center py-12 border border-dashed border-border/50 rounded-lg">
-                                <Clock className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                <p className="text-sm text-muted-foreground">No pending applications</p>
-                            </div>
-                        </div>
+                            </section>
+                        )}
                     </div>
-                </section>
-
-                {/* SECTION 4: Messages Preview */}
-                <section className="space-y-4">
-                    <SectionHeader
-                        title="Recent Conversations"
-                        icon={MessageSquare}
-                        badge={unreadChats.length > 0 ? { label: `${unreadChats.length} unread`, variant: "default" } : undefined}
-                        action={{ label: "View All", href: "/chat" }}
-                    />
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {directMessages.map((chat) => (
-                            <Link key={chat.id} href={`/chat/${chat.id}`}>
-                                <div className={cn(
-                                    "flex items-center gap-3 p-4 rounded-lg border transition-all hover:shadow-md",
-                                    chat.unread_count > 0
-                                        ? "border-primary/30 bg-primary/5"
-                                        : "border-border/50 bg-card/50 hover:bg-card"
-                                )}>
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarFallback className="text-xs bg-muted">
-                                            {chat.name.substring(0, 2).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{chat.name}</p>
-                                        <p className="text-xs text-muted-foreground truncate">
-                                            {chat.last_message}
-                                        </p>
-                                    </div>
-                                    {chat.unread_count > 0 && (
-                                        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
-
-                {/* SECTION 5: Trending Domains / Tags */}
-                <section className="space-y-4">
-                    <SectionHeader
-                        title="Filter by Skills"
-                        subtitle="Refine project recommendations based on your expertise"
-                        icon={TrendingUp}
-                    />
-                    <FilterChips
-                        chips={skillChips}
-                        activeChips={activeSkills}
-                        onToggle={handleSkillToggle}
-                        variant="skill"
-                    />
-                </section>
-
-                {/* SECTION 6: Notifications & Alerts */}
-                {alerts.length > 0 && (
-                    <section className="space-y-3">
-                        <SectionHeader
-                            title="Important Notifications"
-                            subtitle="Action items that need your attention"
-                        />
-                        {alerts.map((alert) => (
-                            <div
-                                key={alert.id}
-                                className="flex items-center gap-3 p-4 rounded-lg border border-warning/20 bg-warning/5"
-                            >
-                                <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
-                                <p className="text-sm flex-1">{alert.message}</p>
-                                <Button variant="outline" size="sm" className="shrink-0 border-warning/30" asChild>
-                                    <Link href={alert.action}>{alert.actionLabel}</Link>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 shrink-0"
-                                    onClick={() => dismissAlert(alert.id)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ))}
-                    </section>
-                )}
+                </div>
             </div>
         </MainLayout>
     );

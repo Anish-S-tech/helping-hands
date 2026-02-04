@@ -112,15 +112,12 @@ export function NotificationsDropdown({ notifications = MOCK_NOTIFICATIONS }: No
     return (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-                    <Bell className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="relative h-10 w-10 text-muted-foreground hover:text-foreground group transition-all duration-300 hover:bg-primary/5 active:scale-90 overflow-visible">
+                    <Bell className="h-5 w-5 transition-transform group-hover:rotate-12 duration-200" />
                     {unreadCount > 0 && (
-                        <>
-                            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
-                            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                                {unreadCount > 9 ? "9+" : unreadCount}
-                            </span>
-                        </>
+                        <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-gradient-to-tr from-primary to-violet-500 text-primary-foreground text-[9px] font-extrabold flex items-center justify-center ring-2 ring-background shadow-lg shadow-primary/30 animate-in zoom-in duration-300">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
                     )}
                 </Button>
             </DropdownMenuTrigger>

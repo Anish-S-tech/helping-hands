@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
+import { Suspense, useMemo, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
@@ -20,7 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { MOCK_PROJECTS, type Project, formatRelativeTime } from '@/data/mock-data';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,35 +37,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { DashboardCarousel } from '@/components/DashboardCarousel';
 import { MainLayout } from '@/components/MainLayout';
+import { ProjectCard } from '@/components/ProjectCard';
+import { HeroCarousel, type HeroSlide } from '@/components/HeroCarousel';
+import { getProjectImage } from '@/lib/images';
 
-// Image mapping for projects
-const PROJECT_IMAGE_MAP: Record<string, string> = {
-  p1: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p2: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p3: 'https://images.pexels.com/photos/3730760/pexels-photo-3730760.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p4: 'https://images.pexels.com/photos/8370755/pexels-photo-8370755.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p5: 'https://images.pexels.com/photos/3861964/pexels-photo-3861964.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p6: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p7: 'https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p8: 'https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p9: 'https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p10: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p11: 'https://images.pexels.com/photos/4974915/pexels-photo-4974915.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p12: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p13: 'https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p14: 'https://images.pexels.com/photos/5905709/pexels-photo-5905709.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p15: 'https://images.pexels.com/photos/5380642/pexels-photo-5380642.jpeg?auto=compress&cs=tinysrgb&w=800',
-  p16: 'https://images.pexels.com/photos/6694543/pexels-photo-6694543.jpeg?auto=compress&cs=tinysrgb&w=800',
-};
-
-function getProjectImage(project: Project): string {
-  if (PROJECT_IMAGE_MAP[project.id]) return PROJECT_IMAGE_MAP[project.id];
-  return 'https://images.pexels.com/photos/3184632/pexels-photo-3184632.jpeg?auto=compress&cs=tinysrgb&w=800';
-}
-
-// Featured Project Card (large, premium styling)
+// Featured Project Card (large, premium styling) -- KEEPING LOCAL for unique layout, but updating style
 function FeaturedProjectCard({ project, onView }: { project: Project; onView: () => void }) {
-  const imageSrc = getProjectImage(project);
+  const imageSrc = project.imageUrl || getProjectImage(project.id);
 
   return (
     <Card
@@ -82,168 +60,58 @@ function FeaturedProjectCard({ project, onView }: { project: Project; onView: ()
             sizes="(min-width: 768px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-card md:bg-gradient-to-r" />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent md:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent md:bg-gradient-to-r md:via-card/20" />
 
           {/* Badges */}
           <div className="absolute left-4 top-4 flex flex-col gap-2">
             <Badge className="bg-primary/90 text-primary-foreground backdrop-blur-md shadow-lg">
               <Sparkles className="mr-1 h-3 w-3" />
-              Featured
-            </Badge>
-            <Badge variant={project.status === 'open' ? 'active' : 'warning'} className="backdrop-blur-md shadow-sm">
-              {project.status === 'open' ? 'Accepting Members' : 'In Progress'}
+              Featured Choice
             </Badge>
           </div>
-
-          {/* Applications Count */}
-          {project.applications_pending > 0 && (
-            <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur-md">
-              <TrendingUp className="h-3.5 w-3.5" />
-              {project.applications_pending} requests
-            </div>
-          )}
         </div>
 
         {/* Content Section */}
         <div className="flex flex-col justify-center p-6 md:p-8">
-          <Badge variant="secondary" className="w-max mb-3 text-xs">
-            {project.sector}
-          </Badge>
+          <div className="flex items-center gap-2 mb-3">
+            <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/5">
+              #1 in {project.sector}
+            </Badge>
+            <span className="text-xs text-muted-foreground font-medium">Sponsored</span>
+          </div>
 
           <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:text-primary transition-colors">
             {project.title}
           </h3>
 
-          <p className="text-muted-foreground mb-4 line-clamp-2 md:line-clamp-3">
+          <p className="text-muted-foreground mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed">
             {project.description}
           </p>
 
-          {/* Skills */}
-          <div className="flex flex-wrap gap-2 mb-5">
-            {project.skills_needed.slice(0, 4).map((skill) => (
-              <Badge
-                key={skill}
-                variant="outline"
-                className="rounded-full bg-primary/5 text-primary border-primary/20"
-              >
-                {skill}
-              </Badge>
-            ))}
-            {project.skills_needed.length > 4 && (
-              <Badge variant="outline" className="rounded-full">
-                +{project.skills_needed.length - 4}
-              </Badge>
-            )}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span>4.9</span>
+              <span className="text-muted-foreground font-normal">(128 reviews)</span>
+            </div>
+            <div className="h-4 w-px bg-border" />
+            <div className="text-sm text-muted-foreground">
+              1k+ views this week
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/40">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 mt-auto">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-violet-500/20 ring-2 ring-background">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">{project.founder.name}</p>
-                <p className="text-xs text-muted-foreground">{project.member_count}/{project.team_size_needed} members</p>
+              <div className="text-sm">
+                <p className="font-semibold text-foreground">Led by {project.founder.name}</p>
+                <p className="text-xs text-muted-foreground">Looking for {project.team_size_needed - project.member_count} experts</p>
               </div>
             </div>
-            <Button className="rounded-full shadow-lg hover:shadow-primary/20">
+            <Button className="rounded-full shadow-lg hover:shadow-primary/20 px-6">
               View Project
-              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-// Project Card (compact, grid style)
-function ProjectCard({ project, onView, index = 0 }: { project: Project; onView: () => void; index?: number }) {
-  const imageSrc = getProjectImage(project);
-
-  return (
-    <Card
-      className={cn(
-        "group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/30 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:bg-card/80 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
-        `stagger-${(index % 8) + 1}`
-      )}
-      onClick={onView}
-    >
-      {/* Image */}
-      <div className="relative h-44 w-full overflow-hidden">
-        <Image
-          src={imageSrc}
-          alt={project.title}
-          fill
-          sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-
-        {/* Top badges */}
-        <div className="absolute left-3 top-3">
-          <Badge
-            variant={project.status === 'open' ? 'active' : project.status === 'in-progress' ? 'warning' : 'outline'}
-            className="backdrop-blur-md shadow-sm text-[10px]"
-          >
-            {project.status === 'open' ? 'Open' : project.status === 'in-progress' ? 'Building' : 'Closed'}
-          </Badge>
-        </div>
-
-        {/* Applications indicator */}
-        {project.applications_pending > 0 && (
-          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground shadow-lg">
-            <Zap className="h-3 w-3" />
-            {project.applications_pending}
-          </div>
-        )}
-
-        {/* Bottom sector badge */}
-        <div className="absolute bottom-3 left-3">
-          <Badge variant="secondary" className="backdrop-blur-md bg-background/70 text-[10px]">
-            {project.sector}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="text-sm font-bold tracking-tight mb-1.5 group-hover:text-primary transition-colors line-clamp-1">
-          {project.title}
-        </h3>
-        <p className="text-[11px] text-muted-foreground line-clamp-2 mb-3">
-          {project.description}
-        </p>
-
-        {/* Skills */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {project.skills_needed.slice(0, 3).map((skill) => (
-            <Badge
-              key={skill}
-              variant="secondary"
-              className="rounded-full px-2 py-0.5 text-[10px] bg-primary/10 text-primary border-0"
-            >
-              {skill}
-            </Badge>
-          ))}
-          {project.skills_needed.length > 3 && (
-            <span className="text-[10px] text-muted-foreground self-center">
-              +{project.skills_needed.length - 3}
-            </span>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto flex items-center justify-between pt-3 border-t border-border/30 text-[11px]">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <Users className="h-3 w-3 text-primary" />
-            </div>
-            <span className="font-medium">{project.member_count}/{project.team_size_needed}</span>
-          </div>
-          <span className="text-muted-foreground">{formatRelativeTime(project.last_activity)}</span>
         </div>
       </div>
     </Card>
@@ -264,7 +132,7 @@ function CategoryCard({ name, count, icon: Icon, color, onClick }: {
       onClick={onClick}
     >
       <div className="p-5">
-        <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center mb-4", color)}>
+        <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110", color)}>
           <Icon className="h-6 w-6 text-white" />
         </div>
         <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{name}</h3>
@@ -452,48 +320,72 @@ function ExploreContent() {
   return (
     <MainLayout>
       <div className="space-y-16 pb-12">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-violet-500/5 to-background border border-border/30">
-          <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
-          <div className="relative px-6 py-12 md:px-10 md:py-16">
-            <div className="max-w-2xl">
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                <Sparkles className="mr-1 h-3 w-3" />
-                Explore Projects
-              </Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-                Find Your Next <span className="text-primary">Collaboration</span>
-              </h1>
-              <p className="text-lg text-muted-foreground mb-6">
-                Discover startups, join teams, and build something meaningful. Browse {MOCK_PROJECTS.length}+ active projects across multiple domains.
-              </p>
+        {/* Hero Carousel Section - Amazon Style */}
+        <section className="relative">
+          <HeroCarousel
+            slides={[
+              {
+                id: 'slide-1',
+                title: 'Build the',
+                subtitle: 'Next Big Thing',
+                description: 'Join elite teams building the future of AI, Web3, and HealthTech. Your skills, their vision, one project at a time.',
+                imageUrl: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=1600',
+                ctaText: 'Browse AI Projects',
+                ctaHref: '/explore?sector=AI%20%26%20ML',
+                badgeText: 'Trending Domain',
+                tagline: 'AI & Machine Learning'
+              },
+              {
+                id: 'slide-2',
+                title: 'Scale your',
+                subtitle: 'Founder Journey',
+                description: 'Find the technical co-founders and early builders you need to turn your MVP into a market leader.',
+                imageUrl: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1600',
+                ctaText: 'Post a Project',
+                ctaHref: '/dashboard/founder',
+                badgeText: 'For Founders',
+                tagline: 'Team Building'
+              },
+              {
+                id: 'slide-3',
+                title: 'Unlock your',
+                subtitle: 'Full Potential',
+                description: 'Level up your portfolio by contributing to real-world products. Get verified, get noticed, get hired.',
+                imageUrl: 'https://images.pexels.com/photos/3182773/pexels-photo-3182773.jpeg?auto=compress&cs=tinysrgb&w=1600',
+                ctaText: 'Join a Team',
+                ctaHref: '/builder/home',
+                badgeText: 'Builder Rewards',
+                tagline: 'Skill Development'
+              }
+            ]}
+          />
 
-              {/* Search Bar */}
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Search projects, skills, or categories..."
-                    className="h-12 pl-12 rounded-xl bg-background/80 backdrop-blur-sm border-border/50"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-12 rounded-xl"
-                  onClick={() => setFilterOpen(true)}
-                >
-                  <Filter className="h-5 w-5 mr-2" />
-                  Filters
-                  {selectedSectors.length > 0 && (
-                    <Badge className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
-                      {selectedSectors.length}
-                    </Badge>
-                  )}
-                </Button>
+          {/* Floating Search Bar (Amazon Style - overlaps the hero slightly) */}
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 z-20">
+            <div className="flex gap-3 bg-background/80 backdrop-blur-xl p-4 rounded-2xl border border-border/50 shadow-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects, skills, or categories..."
+                  className="h-12 pl-12 rounded-xl bg-background/50 border-border/50 focus:ring-primary"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-12 rounded-xl bg-background/50 hover:bg-primary/10 transition-colors"
+                onClick={() => setFilterOpen(true)}
+              >
+                <Filter className="h-5 w-5 mr-2" />
+                Filters
+                {selectedSectors.length > 0 && (
+                  <Badge className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                    {selectedSectors.length}
+                  </Badge>
+                )}
+              </Button>
             </div>
           </div>
         </section>
@@ -507,15 +399,6 @@ function ExploreContent() {
             onClick={() => handleTabChange('all')}
           >
             All Projects
-          </Button>
-          <Button
-            variant={activeTab === 'trending' ? 'default' : 'ghost'}
-            size="sm"
-            className="rounded-full"
-            onClick={() => handleTabChange('trending')}
-          >
-            <TrendingUp className="h-4 w-4 mr-1.5" />
-            Trending
           </Button>
           <Button
             variant={activeTab === 'categories' ? 'default' : 'ghost'}
@@ -606,9 +489,20 @@ function ExploreContent() {
               {filteredProjects.map((project, index) => (
                 <ProjectCard
                   key={project.id}
-                  project={project}
-                  index={index}
-                  onView={() => handleViewProject(project.id)}
+                  id={project.id}
+                  title={project.title}
+                  description={project.description}
+                  sector={project.sector}
+                  tags={project.skills_needed}
+                  phase={project.phase}
+                  memberCount={project.member_count}
+                  teamSize={project.team_size_needed}
+                  founderName={project.founder.name}
+                  lastActivity={formatRelativeTime(project.last_activity)}
+                  applicationsPending={project.applications_pending}
+                  imageUrl={project.imageUrl || getProjectImage(project.id)}
+                  onAction={() => handleViewProject(project.id)}
+                  variant="default" // Using our new Default Amazon style
                 />
               ))}
             </div>
@@ -624,40 +518,6 @@ function ExploreContent() {
           </section>
         ) : (
           <>
-            {/* Trending Projects - Only on 'all' or 'trending' tab */}
-            {(activeTab === 'all' || activeTab === 'trending') && (
-              <section>
-                <SectionHeader
-                  icon={TrendingUp}
-                  iconColor="bg-emerald-500"
-                  title="Trending Now"
-                  subtitle="Projects with the most join requests this week"
-                  action={
-                    activeTab !== 'trending' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-primary"
-                        onClick={() => handleTabChange('trending')}
-                      >
-                        View all <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    )
-                  }
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                  {(activeTab === 'trending' ? trendingProjects : trendingProjects.slice(0, 5)).map((project, index) => (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      index={index}
-                      onView={() => handleViewProject(project.id)}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
             {/* Recently Added - Only on 'all' or 'recent' tab */}
             {(activeTab === 'all' || activeTab === 'recent') && (
               <section>
@@ -683,9 +543,19 @@ function ExploreContent() {
                   {(activeTab === 'recent' ? recentProjects : recentProjects.slice(0, 5)).map((project, index) => (
                     <ProjectCard
                       key={project.id}
-                      project={project}
-                      index={index}
-                      onView={() => handleViewProject(project.id)}
+                      id={project.id}
+                      title={project.title}
+                      description={project.description}
+                      sector={project.sector}
+                      tags={project.skills_needed}
+                      phase={project.phase}
+                      memberCount={project.member_count}
+                      teamSize={project.team_size_needed}
+                      founderName={project.founder.name}
+                      lastActivity={formatRelativeTime(project.last_activity)}
+                      applicationsPending={project.applications_pending}
+                      imageUrl={project.imageUrl || getProjectImage(project.id)}
+                      onAction={() => handleViewProject(project.id)}
                     />
                   ))}
                 </div>
@@ -713,10 +583,23 @@ function ExploreContent() {
                 />
                 <DashboardCarousel>
                   {projects.map((project) => (
-                    <div key={project.id} className="w-72 flex-shrink-0">
+                    <div key={project.id} className="w-72 flex-shrink-0 h-full">
+                      {/* Carousel cards also use the new design */}
                       <ProjectCard
-                        project={project}
-                        onView={() => handleViewProject(project.id)}
+                        id={project.id}
+                        title={project.title}
+                        description={project.description}
+                        sector={project.sector}
+                        tags={project.skills_needed}
+                        phase={project.phase}
+                        memberCount={project.member_count}
+                        teamSize={project.team_size_needed}
+                        founderName={project.founder.name}
+                        lastActivity={formatRelativeTime(project.last_activity)}
+                        applicationsPending={project.applications_pending}
+                        imageUrl={project.imageUrl || getProjectImage(project.id)}
+                        onAction={() => handleViewProject(project.id)}
+                        className="h-full"
                       />
                     </div>
                   ))}
@@ -759,3 +642,4 @@ export default function ExplorePage() {
     </Suspense>
   );
 }
+

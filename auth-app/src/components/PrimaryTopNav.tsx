@@ -54,17 +54,18 @@ export function PrimaryTopNav() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="relative text-muted-foreground hover:text-foreground"
+                        className="relative text-muted-foreground hover:text-foreground group h-10 w-10 transition-all duration-300 hover:bg-primary/5 active:scale-90"
                         asChild
                     >
                         <Link href="/chat">
-                            <MessageSquare className="h-5 w-5" />
+                            <MessageSquare className="h-5 w-5 transition-transform group-hover:scale-110" />
                             {unreadMessages > 0 && (
-                                <>
-                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-                                    <span className="sr-only">{unreadMessages} unread messages</span>
-                                </>
+                                <div className="absolute top-2 right-2 flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-tr from-primary to-violet-500 shadow-sm shadow-primary/40"></span>
+                                </div>
                             )}
+                            <span className="sr-only">{unreadMessages} unread messages</span>
                         </Link>
                     </Button>
 
@@ -77,10 +78,10 @@ export function PrimaryTopNav() {
                     {profile ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                                    <Avatar className="h-9 w-9">
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 transition-transform hover:scale-110 active:scale-95 group">
+                                    <Avatar className="h-10 w-10 ring-0 ring-primary/20 transition-all group-hover:ring-4 group-hover:shadow-[0_0_20px_rgba(var(--primary),0.3)]">
                                         <AvatarImage src={profile.avatar_url || undefined} alt={profile.name || 'User'} />
-                                        <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                        <AvatarFallback className="text-xs bg-gradient-to-br from-primary/10 to-violet-500/10 text-primary font-bold border border-primary/20">
                                             {profile.name?.substring(0, 2).toUpperCase() || 'U'}
                                         </AvatarFallback>
                                     </Avatar>

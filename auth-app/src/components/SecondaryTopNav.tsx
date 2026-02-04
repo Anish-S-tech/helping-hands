@@ -27,7 +27,6 @@ interface NavItem {
 // Public (unauthenticated) navigation
 const publicNavItems: NavItem[] = [
     { href: '/', label: 'Explore Projects', icon: Compass },
-    { href: '/explore?tab=trending', label: 'Trending', icon: BarChart3 },
     { href: '/explore?tab=categories', label: 'Categories', icon: FolderKanban },
 ]
 

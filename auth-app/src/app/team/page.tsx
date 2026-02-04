@@ -59,7 +59,7 @@ export default function TeamPage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (profile && profile.role_type === 'user') {
+        if (profile && profile.role_type === 'builder') {
             router.push('/builder/home');
         }
     }, [profile, authLoading, router]);

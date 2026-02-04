@@ -85,144 +85,172 @@ export default function BuilderContributionsPage() {
 
     return (
         <MainLayout>
-            <div className="max-w-[1400px] mx-auto space-y-10">
-                {/* Header */}
-                <section className="space-y-4">
-                    <BackButton />
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-3xl font-bold tracking-tight">
-                                    My Contributions
-                                </h1>
-                                <Badge variant="secondary">{activeProjects.length} Active</Badge>
-                            </div>
-                            <p className="text-muted-foreground">
-                                Track your project contributions and application status
+            <div className="max-w-[1400px] mx-auto space-y-10 pb-12 px-4 md:px-6">
+                {/* Header Section */}
+                <section className="space-y-6 animate-fade-in stagger-1">
+                    <BackButton className="hover:bg-muted/50 transition-all" />
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/40">
+                        <div className="space-y-1.5">
+                            <h1 className="text-4xl font-extrabold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/50 bg-clip-text">
+                                My Contributions
+                            </h1>
+                            <p className="text-muted-foreground flex items-center gap-2 font-medium">
+                                <span className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
+                                Monitoring active engagements and applications.
                             </p>
                         </div>
-                        <Button asChild>
-                            <Link href="/builder/explore">
+                        <Button size="sm" className="h-10 px-6 font-bold shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 active:scale-95" asChild>
+                            <Link href="/explore">
                                 <Briefcase className="mr-2 h-4 w-4" />
-                                Find More Projects
+                                Browse Marketplace
                             </Link>
                         </Button>
                     </div>
                 </section>
 
-                {/* Active Projects */}
-                <section className="space-y-4">
-                    <SectionHeader
-                        title="Active Projects"
-                        subtitle="Projects you're currently contributing to"
-                        icon={Briefcase}
-                        badge={{ label: `${activeProjects.length} projects`, variant: "secondary" }}
-                    />
-                    {activeProjects.length === 0 ? (
-                        <div className="text-center py-16 border border-dashed border-border/50 rounded-lg">
-                            <Briefcase className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                            <p className="text-muted-foreground mb-4">You're not contributing to any projects yet</p>
-                            <Button asChild>
-                                <Link href="/builder/explore">Explore Projects</Link>
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {activeProjects.map((project) => (
-                                <ProjectCard
-                                    key={project.id}
-                                    id={project.project_id}
-                                    title={project.project_title}
-                                    description={`Your Role: ${project.role}`}
-                                    phase={project.phase as ProjectPhase}
-                                    founderName={project.founder_name}
-                                    lastActivity={formatRelativeTime(project.last_activity)}
-                                    variant="compact"
-                                    showActions={true}
+                <div className="grid lg:grid-cols-3 gap-10">
+                    {/* MAIN COLUMN (2/3) - Active Projects */}
+                    <div className="lg:col-span-2 space-y-8 animate-fade-in stagger-2">
+                        <section className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <SectionHeader
+                                    title="Active Missions"
+                                    subtitle="Projects you are currently deployed to"
+                                    badge={{ label: `${activeProjects.length} Engaged`, variant: "secondary" }}
                                 />
-                            ))}
-                        </div>
-                    )}
-                </section>
-
-                {/* Pending Applications */}
-                {pendingApplications.length > 0 && (
-                    <section className="space-y-4">
-                        <SectionHeader
-                            title="Pending Applications"
-                            subtitle="Awaiting response from project founders"
-                            icon={Clock}
-                            badge={{ label: `${pendingApplications.length} pending`, variant: "warning" }}
-                        />
-                        <div className="space-y-3">
-                            {pendingApplications.map((app) => (
-                                <div
-                                    key={app.id}
-                                    className="flex items-center gap-4 p-4 rounded-lg border border-warning/20 bg-warning/5"
-                                >
-                                    <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
-                                        {getStatusIcon(app.status)}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium">{app.project_title}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Applied for <span className="text-foreground font-medium">{app.role_applied}</span>
-                                        </p>
-                                        <p className="text-xs text-muted-foreground/70 mt-1">
-                                            {formatRelativeTime(app.applied_at)}
-                                        </p>
-                                    </div>
-                                    {getStatusBadge(app.status)}
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Application History */}
-                <section className="space-y-4">
-                    <SectionHeader
-                        title="Application History"
-                        subtitle="All your past applications"
-                        icon={FileText}
-                    />
-                    <div className="space-y-3">
-                        {[...acceptedApplications, ...rejectedApplications].map((app) => (
-                            <div
-                                key={app.id}
-                                className={cn(
-                                    "flex items-center gap-4 p-4 rounded-lg border",
-                                    app.status === 'accepted'
-                                        ? "border-green-500/20 bg-green-500/5"
-                                        : "border-destructive/20 bg-destructive/5"
-                                )}
-                            >
-                                <div className={cn(
-                                    "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
-                                    app.status === 'accepted' ? "bg-green-500/10" : "bg-destructive/10"
-                                )}>
-                                    {getStatusIcon(app.status)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-medium">{app.project_title}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Applied for <span className="text-foreground font-medium">{app.role_applied}</span>
-                                    </p>
-                                    <p className="text-xs text-muted-foreground/70 mt-1">
-                                        {formatRelativeTime(app.applied_at)}
-                                    </p>
-                                </div>
-                                {getStatusBadge(app.status)}
                             </div>
-                        ))}
-                        {acceptedApplications.length === 0 && rejectedApplications.length === 0 && (
-                            <div className="text-center py-12 border border-dashed border-border/50 rounded-lg">
-                                <FileText className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                <p className="text-sm text-muted-foreground">No application history yet</p>
-                            </div>
-                        )}
+
+                            {activeProjects.length === 0 ? (
+                                <div className="text-center py-20 border border-dashed border-border/40 rounded-3xl bg-muted/5 group hover:border-primary/40 transition-colors">
+                                    <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border/50 group-hover:scale-110 transition-transform">
+                                        <Briefcase className="h-8 w-8 text-muted-foreground opacity-30" />
+                                    </div>
+                                    <h3 className="text-lg font-bold mb-1">No active missions found</h3>
+                                    <p className="text-sm text-muted-foreground mb-6 max-w-[280px] mx-auto">Apply to projects in the marketplace to start your contribution journey.</p>
+                                    <Button variant="outline" size="sm" className="h-9 px-6 font-bold" asChild>
+                                        <Link href="/explore">View Projects</Link>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {activeProjects.map((project) => (
+                                        <div key={project.id} className="group transition-all">
+                                            <ProjectCard
+                                                id={project.project_id}
+                                                title={project.project_title}
+                                                vision={`Working as: ${project.role}`}
+                                                phase={project.phase as ProjectPhase}
+                                                founderName={project.founder_name}
+                                                imageUrl={project.imageUrl}
+                                                lastActivity={formatRelativeTime(project.last_activity)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
                     </div>
-                </section>
+
+                    {/* SIDEBAR COLUMN (1/3) - Pipeline & History */}
+                    <div className="space-y-10 animate-fade-in stagger-3">
+                        {/* Application Pipeline */}
+                        <section className="space-y-6">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground/50">
+                                    Application Pipeline
+                                </h3>
+                                {pendingApplications.length > 0 && (
+                                    <Badge variant="outline" className="text-[9px] font-bold px-2 py-0 border-amber-500/30 text-amber-500 bg-amber-500/5">
+                                        {pendingApplications.length} PENDING
+                                    </Badge>
+                                )}
+                            </div>
+
+                            <div className="space-y-3">
+                                {pendingApplications.length === 0 ? (
+                                    <div className="text-center py-10 border border-dashed border-border/40 rounded-2xl bg-muted/5">
+                                        <Clock className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-20" />
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Queue Empty</p>
+                                    </div>
+                                ) : (
+                                    pendingApplications.map((app) => (
+                                        <div
+                                            key={app.id}
+                                            className="group relative p-4 rounded-xl border border-border/40 bg-card hover:border-amber-500/40 transition-all hover:bg-card/80"
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0 border border-amber-500/20">
+                                                    <Clock className="h-5 w-5" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold truncate group-hover:text-amber-500 transition-colors leading-tight">{app.project_title}</p>
+                                                    <p className="text-[11px] text-muted-foreground mt-1 font-medium">Applied for <span className="text-foreground/80">{app.role_applied}</span></p>
+                                                    <div className="flex items-center justify-between mt-3">
+                                                        <span className="text-[10px] text-muted-foreground/60 tabular-nums font-medium">{formatRelativeTime(app.applied_at)}</span>
+                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">Action Pending</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
+                        {/* Recent History */}
+                        <section className="space-y-6">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground/50">
+                                    Recent Decisions
+                                </h3>
+                                <Link href="/archive" className="text-[10px] font-extrabold text-primary hover:text-primary/80 transition-colors uppercase tracking-widest">
+                                    History
+                                </Link>
+                            </div>
+
+                            <div className="space-y-3">
+                                {[...acceptedApplications, ...rejectedApplications].slice(0, 4).map((app) => (
+                                    <div
+                                        key={app.id}
+                                        className={cn(
+                                            "p-4 rounded-xl border transition-all hover:bg-card/80",
+                                            app.status === 'accepted'
+                                                ? "border-emerald-500/20 bg-emerald-500/[0.02] hover:border-emerald-500/40"
+                                                : "border-border/30 bg-card/30 hover:border-border/50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "h-10 w-10 rounded-full flex items-center justify-center shrink-0 border",
+                                                app.status === 'accepted' ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500" : "border-border bg-muted/50 text-muted-foreground"
+                                            )}>
+                                                {app.status === 'accepted' ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center mb-0.5">
+                                                    <p className="text-sm font-bold truncate leading-tight">{app.project_title}</p>
+                                                    <span className={cn(
+                                                        "text-[9px] font-bold uppercase tracking-widest",
+                                                        app.status === 'accepted' ? "text-emerald-500" : "text-muted-foreground/70"
+                                                    )}>
+                                                        {app.status}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[10px] text-muted-foreground font-medium">Applied as {app.role_applied}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {acceptedApplications.length === 0 && rejectedApplications.length === 0 && (
+                                    <div className="text-center py-10 border border-dashed border-border/40 rounded-2xl bg-muted/5">
+                                        <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-20" />
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">No Archives</p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    </div>
+                </div>
             </div>
         </MainLayout>
     );

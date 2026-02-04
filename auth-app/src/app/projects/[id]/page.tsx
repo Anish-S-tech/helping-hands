@@ -13,6 +13,7 @@ import {
     Briefcase,
     Calendar,
     CheckCircle2,
+    UploadCloud,
     Send,
     Loader2,
     Star,
@@ -27,7 +28,8 @@ import {
     Award,
     Layers
 } from 'lucide-react';
-import { MOCK_PROJECTS, formatRelativeTime, type Project } from '@/data/mock-data';
+import { MOCK_PROJECTS, MOCK_FOUNDERS, formatRelativeTime, type Project } from '@/data/mock-data';
+import { Mail, MapPin, ShieldCheck, Sparkle } from 'lucide-react';
 import { MainLayout } from '@/components/MainLayout';
 import { ProjectPhaseBadge } from '@/components/ProjectPhaseBadge';
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +75,7 @@ const PROJECT_IMAGE_MAP: Record<string, string> = {
 };
 
 function getProjectImage(project: Project): string {
+    if (project.imageUrl) return project.imageUrl;
     if (PROJECT_IMAGE_MAP[project.id]) return PROJECT_IMAGE_MAP[project.id];
     return 'https://images.pexels.com/photos/3184632/pexels-photo-3184632.jpeg?auto=compress&cs=tinysrgb&w=1200';
 }
@@ -168,6 +171,7 @@ export default function ProjectDetailPage() {
     const hasOpenRoles = project.open_roles.length > 0;
     const imageSrc = getProjectImage(project);
     const capacityPercent = Math.min(100, ((project.member_count) / project.team_size_needed) * 100);
+    const founderProfile = MOCK_FOUNDERS.find(f => f.id === project.founder.id);
 
     return (
         <MainLayout>
@@ -237,7 +241,7 @@ export default function ProjectDetailPage() {
                                 </div>
                             </div>
 
-                            {/* CTA Buttons */}
+                            {/* CTA Buttons - NEW APPLICATION FORM DIALOG */}
                             <div className="flex gap-3 shrink-0">
                                 {project.status === 'open' && !isFounder && hasOpenRoles && (
                                     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -247,75 +251,147 @@ export default function ProjectDetailPage() {
                                                 Apply to Join
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="sm:max-w-[500px]">
-                                            <DialogHeader>
-                                                <DialogTitle>Apply to {project.title}</DialogTitle>
-                                                <DialogDescription>
-                                                    Select a role and tell the founder why you'd be a great fit.
+                                        <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto p-0 gap-0 bg-card border-border shadow-2xl">
+                                            <div className="sticky top-0 z-10 flex flex-col space-y-1.5 p-6 bg-card/95 backdrop-blur-md border-b border-border/40">
+                                                <DialogTitle className="text-xl font-semibold tracking-tight">Apply for {project.title}</DialogTitle>
+                                                <DialogDescription className="text-base">
+                                                    Submit your profile for the <span className="font-medium text-foreground">{selectedRole || "role"}</span> position.
                                                 </DialogDescription>
-                                            </DialogHeader>
+                                            </div>
 
                                             {applicationSent ? (
-                                                <div className="py-8 text-center">
-                                                    <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                                                        <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                                                <div className="p-12 text-center space-y-6">
+                                                    <div className="h-20 w-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto ring-1 ring-emerald-500/20">
+                                                        <CheckCircle2 className="h-10 w-10 text-emerald-600" />
                                                     </div>
-                                                    <h3 className="text-lg font-semibold mb-2">Application Sent!</h3>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        The founder will review your application and get back to you.
-                                                    </p>
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-xl font-semibold text-foreground">Application Submitted</h3>
+                                                        <p className="text-muted-foreground max-w-xs mx-auto">
+                                                            The founder has been notified. You can track this application in your dashboard.
+                                                        </p>
+                                                    </div>
+                                                    <Button variant="outline" onClick={() => setDialogOpen(false)} className="mt-4">
+                                                        Close Window
+                                                    </Button>
                                                 </div>
                                             ) : (
-                                                <>
-                                                    <div className="space-y-4 py-4">
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="role">Role</Label>
-                                                            <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Select a role" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {project.open_roles.map(role => (
-                                                                        <SelectItem key={role} value={role}>
-                                                                            {role}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="cover">Why do you want to join?</Label>
-                                                            <Textarea
-                                                                id="cover"
-                                                                placeholder="Tell the founder about your relevant experience and why you're interested..."
-                                                                value={coverLetter}
-                                                                onChange={(e) => setCoverLetter(e.target.value)}
-                                                                rows={5}
-                                                            />
-                                                        </div>
+                                                <div className="p-6 space-y-8">
+                                                    {/* 1. Role Selection */}
+                                                    <div className="space-y-3">
+                                                        <Label className="text-sm font-medium text-foreground">Select Role <span className="text-destructive">*</span></Label>
+                                                        <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                                            <SelectTrigger className="h-11 border-input/60 bg-muted/5 focus:bg-background transition-colors">
+                                                                <SelectValue placeholder="Which role fits you best?" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {project.open_roles.map(role => (
+                                                                    <SelectItem key={role} value={role} className="py-3">
+                                                                        {role}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
 
-                                                    <DialogFooter>
-                                                        <Button
-                                                            onClick={handleApply}
-                                                            disabled={!selectedRole || !coverLetter.trim() || isApplying}
-                                                            className="gap-2"
-                                                        >
-                                                            {isApplying ? (
-                                                                <>
-                                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                                    Sending...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Send className="h-4 w-4" />
+                                                    {selectedRole && (
+                                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+
+                                                            {/* 2. Professional Identity */}
+                                                            <div className="space-y-4">
+                                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Professional Identity</h4>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div className="space-y-2">
+                                                                        <Label className="text-xs">LinkedIn URL <span className="text-destructive">*</span></Label>
+                                                                        <input type="url" className="flex h-10 w-full rounded-md border border-input/60 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all" placeholder="linkedin.com/in/..." />
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        <Label className="text-xs">Portfolio / GitHub</Label>
+                                                                        <input type="url" className="flex h-10 w-full rounded-md border border-input/60 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all" placeholder="github.com/..." />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* 3. Resume Upload (Mock UI) */}
+                                                            <div className="space-y-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Resume / CV</h4>
+                                                                    <span className="text-[10px] text-muted-foreground">PDF, DOCX up to 5MB</span>
+                                                                </div>
+                                                                <div className="border-2 border-dashed border-border/60 rounded-xl p-6 hover:bg-muted/5 transition-colors cursor-pointer text-center group">
+                                                                    <div className="flex flex-col items-center gap-2">
+                                                                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                                                            <UploadCloud className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <p className="text-sm font-medium text-foreground">Click to upload or drag and drop</p>
+                                                                            <p className="text-xs text-muted-foreground">Professional Resume required</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* 4. Role-Specific Questions */}
+                                                            <div className="space-y-4">
+                                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role Fit</h4>
+
+                                                                {/* Engineering Roles */}
+                                                                {(selectedRole.toLowerCase().match(/engineer|developer|backend|frontend|fullstack/)) && (
+                                                                    <div className="space-y-4">
+                                                                        <div className="space-y-2">
+                                                                            <Label className="text-xs">Years of Experience</Label>
+                                                                            <Select>
+                                                                                <SelectTrigger className="h-10 border-input/60"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value="0-1">0-1 Years</SelectItem>
+                                                                                    <SelectItem value="1-3">1-3 Years</SelectItem>
+                                                                                    <SelectItem value="3-5">3-5 Years</SelectItem>
+                                                                                    <SelectItem value="5+">5+ Years</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <Label className="text-xs">Primary Tech Stack</Label>
+                                                                            <input type="text" className="flex h-10 w-full rounded-md border border-input/60 bg-transparent px-3 py-2 text-sm" placeholder="e.g. React, Node, Python..." />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Design Roles */}
+                                                                {(selectedRole.toLowerCase().match(/designer|ui|ux|creative/)) && (
+                                                                    <div className="space-y-4">
+                                                                        <div className="space-y-2">
+                                                                            <Label className="text-xs">Design Tools</Label>
+                                                                            <input type="text" className="flex h-10 w-full rounded-md border border-input/60 bg-transparent px-3 py-2 text-sm" placeholder="Figma, Adobe XD, Spline..." />
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <Label className="text-xs">Link to Best Case Study</Label>
+                                                                            <input type="url" className="flex h-10 w-full rounded-md border border-input/60 bg-transparent px-3 py-2 text-sm" placeholder="https://..." />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-xs">Why this project? (Cover Note)</Label>
+                                                                    <Textarea
+                                                                        className="min-h-[100px] bg-transparent border-input/60 focus:border-primary resize-y"
+                                                                        placeholder="Briefly explain your relevant experience and motivation..."
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Footer Actions */}
+                                                            <div className="pt-4 flex items-center justify-end gap-3 border-t border-border/40">
+                                                                <Button variant="ghost" type="button" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                                                                <Button
+                                                                    onClick={handleApply}
+                                                                    className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 min-w-[120px]"
+                                                                >
                                                                     Submit Application
-                                                                </>
-                                                            )}
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </>
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
                                         </DialogContent>
                                     </Dialog>
@@ -468,27 +544,70 @@ export default function ProjectDetailPage() {
 
                     {/* Right Column - Sidebar */}
                     <div className="space-y-6">
-                        {/* Founder Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                                    Project Founder
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        {/* Founder Card - Premium Revamp */}
+                        <Card className="overflow-hidden border-border/40 bg-card/30 backdrop-blur-xl">
+                            <div className="h-24 w-full bg-gradient-to-br from-primary/10 via-violet-500/5 to-background relative overflow-hidden">
+                                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+                                <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-primary/20 blur-2xl" />
+                            </div>
+                            <CardContent className="relative pt-0">
                                 <Link href={`/profile/${project.founder.id}`} className="block group">
-                                    <div className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/40 transition-all">
-                                        <Avatar className="h-14 w-14 ring-2 ring-background">
-                                            <AvatarImage src={`https://i.pravatar.cc/150?u=${project.founder.id}`} />
-                                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-violet-500/20 font-semibold">
-                                                {project.founder.name.substring(0, 2).toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <p className="font-semibold group-hover:text-primary transition-colors">{project.founder.name}</p>
-                                            <p className="text-sm text-muted-foreground">Founder & Creator</p>
+                                    <div className="-mt-12 mb-4 flex flex-col items-center text-center">
+                                        <div className="relative">
+                                            <Avatar className="h-24 w-24 border-4 border-background shadow-2xl ring-1 ring-border/50 transition-transform duration-500 group-hover:scale-105">
+                                                <AvatarImage src={`https://i.pravatar.cc/150?u=${project.founder.id}`} />
+                                                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-violet-500/20 text-xl font-bold">
+                                                    {project.founder.name.substring(0, 2).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            {founderProfile?.is_verified && (
+                                                <div className="absolute bottom-1 right-1 h-6 w-6 rounded-full bg-primary flex items-center justify-center border-2 border-background shadow-lg">
+                                                    <ShieldCheck className="h-3.5 w-3.5 text-primary-foreground" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+
+                                        <div className="mt-4 space-y-1">
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
+                                                    {project.founder.name}
+                                                </h3>
+                                                <Sparkle className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                                            </div>
+                                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Founder & Visionary</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 px-2 pb-2">
+                                        {founderProfile?.bio && (
+                                            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 text-center italic">
+                                                "{founderProfile.bio}"
+                                            </p>
+                                        )}
+
+                                        <div className="flex flex-wrap justify-center gap-y-2 gap-x-4 pt-2 border-t border-border/40">
+                                            {founderProfile?.location && (
+                                                <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                                                    <MapPin className="h-3 w-3 text-primary" />
+                                                    {founderProfile.location}
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                                                <Users className="h-3 w-3 text-violet-500" />
+                                                4 Projects Launched
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 pt-2">
+                                            <Button variant="outline" size="sm" className="w-full text-xs h-9 rounded-xl border-border/60 hover:bg-primary/5 hover:text-primary transition-all">
+                                                <Mail className="mr-2 h-3.5 w-3.5" />
+                                                Message
+                                            </Button>
+                                            <Button variant="secondary" size="sm" className="w-full text-xs h-9 rounded-xl group/btn">
+                                                Profile
+                                                <ChevronRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </Link>
                             </CardContent>
@@ -538,18 +657,6 @@ export default function ProjectDetailPage() {
                                 </CardContent>
                             </Card>
                         )}
-
-                        {/* Share CTA */}
-                        <Card className="bg-gradient-to-br from-primary/5 to-violet-500/5 border-primary/20">
-                            <CardContent className="p-5 text-center space-y-3">
-                                <Heart className="h-8 w-8 text-primary mx-auto" />
-                                <p className="text-sm font-medium">Know someone who'd be a great fit?</p>
-                                <Button variant="outline" className="gap-2 w-full">
-                                    <Share2 className="h-4 w-4" />
-                                    Share this Project
-                                </Button>
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
             </div>
